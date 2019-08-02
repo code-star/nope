@@ -1,6 +1,5 @@
-import { ValidationRule, ValueOfObject, createValidationRule, ErrorOfObject } from './ValidationRule'
 import { Validated } from './validation'
-import { positive, positive2, number } from './Number'
+import { createValidationRule, ValidationRule } from './ValidationRule'
 
 export const NOT_AN_OBJECT: 'NOT_AN_OBJECT' = 'NOT_AN_OBJECT'
 
@@ -14,24 +13,4 @@ export function object(): ValidationRule<unknown, typeof NOT_AN_OBJECT, object> 
       }
     }
   )
-}
-
-export function shape<P, E, O extends { [k: string]: ValidationRule<unknown, any, any> }>(
-  this: ValidationRule<P, E, object>,
-  o: O
-): ValidationRule<P, E | ErrorOfObject<O>, ValueOfObject<O>> {
-  return null as any
-}
-
-const x = object().shape({
-  obj: object(),
-  num: positive2(),
-  alsoNum: ValidationRule.compose(
-    number(),
-    positive2()
-  )
-})(4)
-
-if (x.isValid()) {
-  x.value.obj
 }
