@@ -1,5 +1,6 @@
 import { keys } from './Objects'
 import { Validated } from './validation'
+import { shape } from './Object'
 
 type ValidatedOfObject<E, O> = { [K in keyof O]: Validated<Element, O[K]> }
 
@@ -7,9 +8,10 @@ export type ValidationRule<P, E, A> = {
   (p: P): Validated<E, A>
   required(): ValidationRule<P, E, Exclude<A, null>>
   positive(this: ValidationRule<P, E, number>): ValidationRule<P, E, number>
+  shape: typeof shape
 }
 
-function createValidationRule<P, E, A>(fn: (p: P) => Validated<E, A>): ValidationRule<P, E, A> {
+export function createValidationRule<P, E, A>(fn: (p: P) => Validated<E, A>): ValidationRule<P, E, A> {
   return null as any
 }
 
@@ -17,10 +19,10 @@ type ParameterOf<V> = V extends ValidationRule<infer P, any, any> ? P : never
 type ParameterOfObject<O> = { [K in keyof O]: ParameterOf<O[K]> }
 type ParameterOfTuple<O> = { [K in keyof O]: ParameterOf<O[K]> }
 type ErrorOf<V> = V extends ValidationRule<any, infer E, any> ? E : never
-type ErrorOfObject<O> = ({ [K in keyof O]: ErrorOf<O[K]> })[keyof O]
+export type ErrorOfObject<O> = ({ [K in keyof O]: ErrorOf<O[K]> })[keyof O]
 type ErrorOfTuple<O> = ({ [K in keyof O]: ErrorOf<O[K]> }) extends Array<infer E> ? E : never
 type ValueOf<V> = V extends ValidationRule<any, any, infer A> ? A : never
-type ValueOfObject<O> = { [K in keyof O]: ValueOf<O[K]> }
+export type ValueOfObject<O> = { [K in keyof O]: ValueOf<O[K]> }
 type ValueOfTuple<O> = { [K in keyof O]: ValueOf<O[K]> }
 
 export const ValidationRule = {
