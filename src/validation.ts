@@ -3,10 +3,10 @@ import { keys } from './Objects'
 const ValidTypeTag = 'valid'
 const InvalidTypeTag = 'invalid'
 
-type ErrorOf<V> = V extends Invalid<infer E> ? E : never
+export type ErrorOf<V> = V extends Invalid<infer E> ? E : never
 type ErrorOfObject<O> = ({ [K in keyof O]: ErrorOf<O[K]> })[keyof O]
 // type ErrorOfTuple<O> = ({ [K in keyof O]: ErrorOf<O[K]> }) extends Array<infer E> ? E : never
-type ValueOf<V> = V extends Valid<infer A> ? A : never
+export type ValueOf<V> = V extends Valid<infer A> ? A : never
 type ValueOfObject<O> = { [K in keyof O]: ValueOf<O[K]> }
 // type ValueOfTuple<O> = { [K in keyof O]: ValueOf<O[K]> }
 
@@ -41,7 +41,7 @@ export abstract class Validated<E, A> {
   abstract isValid(): this is Valid<A>
 
   isInvalid(): this is Invalid<E> {
-    return !this.isValid
+    return !this.isValid()
   }
 
   abstract fold<B>(ok: (a: A) => B, error: (errors: E[]) => B): B
