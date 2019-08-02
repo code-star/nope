@@ -26,13 +26,17 @@ type Validated<E, A> = Valid<A> | Invalid<E>
 //   fold<E, A, B>(v: Validated<E, A>, ok: (a: A) => B, error: (errors: E) => B): B
 // }
 
-type ErrorOf<V> = V extends Validated<infer E, any> ? E : never
+type ErrorOf<V> = V extends Invalid<infer E> ? E : never
 type ErrorOfObject<O> = ({ [K in keyof O]: ErrorOf<O[K]> })[keyof O]
 // type ErrorOfTuple<O> = ({ [K in keyof O]: ErrorOf<O[K]> }) extends Array<infer E> ? E : never
-type ValueOf<V> = V extends Validated<any, infer A> ? A : never
+type ValueOf<V> = V extends Valid<infer A> ? A : never
 type ValueOfObject<O> = { [K in keyof O]: ValueOf<O[K]> }
 // type ValueOfTuple<O> = { [K in keyof O]: ValueOf<O[K]> }
 
+type CombineObject = { 
+  [k: string]: Validated<any, any>
+}
+type CombineValidated<O> = Validated<ErrorOfObject<O>, ValueOfObject<O>>
 
 
 function identity<T>(t: T): T { return t; }
@@ -44,8 +48,23 @@ class ValidatedOps<E, A> {
     return this.fold<Validated<E,B>>(v => Validated.ok(f(v)), Validated.errors)
   }
 
+  mapError<F>(f: (error: E) => F): Validated<F, A> {
+    return this.fold<Validated<F, A>>(Validated.ok, errors => Validated.errors(errors.map(f)))
+  }
+
   flatMap<B>(f: (a: A) => Validated<E, B>): Validated<E,B> {
     return this.fold(f, Validated.errors)
+  }
+
+  filter(pred: (a: A) => boolean, toError: (error: A) => E): Validated<E,A> {
+    return this.fold(
+      a => pred(a) ? Validated.ok(a) : Validated.errors([toError(a)]),
+      Validated.errors
+    ) 
+  }
+
+  recover(f: (errors: E[]) => Valid<A>): Valid<A> {
+    return this.fold<Valid<A>>(Validated.ok, f)
   }
 
 
@@ -60,14 +79,13 @@ class ValidatedOps<E, A> {
 }
 
 
-
 const Validated = {
   ok<A>(value: A): Valid<A>  {
     return { type: ValidTypeTag, value }
   },
   errors<E>(errors: E[]): Invalid<E> { return {type: InvalidTypeTag, errors: errors}},
 
-  combine<O extends { [k: string]: Validated<any, any>}>(o: O): Validated<ErrorOfObject<O>, ValueOfObject<O>> {
+  combine<O extends CombineObject>(o: O): CombineValidated<O> {
     const errors: any[] = []
     const values: { [K in keyof O]?: any } = {}
     keys(o).forEach(key => {
@@ -100,29 +118,14 @@ const result = Validated.combine({
   k2: v2
 })
 
-if(result.type === "valid") {
-  result.value.
+if(result.type === ValidTypeTag){
+  const value = result.value.k1
 }
 
 
 
 
-
-
-
-
-
-
-
-
-abstract class AbstractValidated<E,A> {
-  abstract map<B>(f: (a: A) => B): Validated<E, B>
-
-  abstract flatMap<B>(f: (a: A) => Validated<E, B>): Validated<E, B>
-
-  abstract isValid(): this is Valid<A>
-}
-
+new ValidatedOps(v1).map(n => n + 1)
 
 
 
