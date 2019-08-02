@@ -1,16 +1,5 @@
 import { keys } from './Objects'
-
-type Validated<E, A> = Valid<A> | Invalid<E>
-
-type Valid<A> = Readonly<{
-  type: 'ok'
-  value: A
-}>
-
-type Invalid<E> = Readonly<{
-  type: 'nook'
-  errors: E[]
-}>
+import { Validated } from './validation'
 
 type ValidatedOfObject<E, O> = { [K in keyof O]: Validated<Element, O[K]> }
 
@@ -35,6 +24,13 @@ type ValueOfObject<O> = { [K in keyof O]: ValueOf<O[K]> }
 type ValueOfTuple<O> = { [K in keyof O]: ValueOf<O[K]> }
 
 export const ValidationRule = {
+  compose<E1, E2, A, B, C>(left: (a: A) => Validated<E1, B>, right: (b: B) => Validated<E2, C>): ValidationRule<A, E1 | E2, C> {
+    return createValidationRule(
+      (a: A): Validated<E1 | E2, C> => {
+        return left(a).flatMap(right)
+      }
+    )
+  },
   sequence<C extends Array<ValidationRule<any, any, any>>>(...c: C): ValidationRule<ParameterOfTuple<C>, ErrorOfTuple<C>, ValueOfTuple<C>> {
     return createValidationRule((ps: ParameterOfTuple<C>) => {
       const acc: Array<Validated<ErrorOfTuple<C>, ValueOfTuple<C>>> = []
