@@ -1,0 +1,35 @@
+{
+  "name": "nope",
+  "version": "1.0.0",
+  "description": "Applicative validation",
+  "main": "index.js",
+  "scripts": {
+    "compile-test": "npm run clean && tsc -p . --p tsconfig.test.json",
+    "test": "npm run compile-test && jest --no-cache",
+    "coverage": "npm run compile-test && jest --no-cache --coverage",
+    "clean": "rm -rf dist coverage",
+    "tsc": "tsc",
+    "compile": "npm run clean && tsc -p .",
+    "prepublishOnly": "npm run test && npm run compile"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/code-star/nope.git"
+  },
+  "keywords": [
+    "applicative",
+    "validation"
+  ],
+  "author": "Codestar",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/code-star/nope/issues"
+  },
+  "homepage": "https://github.com/code-star/nope#readme",
+  "devDependencies": {
+    "@types/jest": "^24.0.16",
+    "@types/node": "^12.6.9",
+    "jest": "^24.8.0",
+    "typescript": "^3.5.3"
+  }
+}
