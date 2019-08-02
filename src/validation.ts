@@ -1,3 +1,7 @@
+import {ValidationRule} from "./ValidationRule";
+import {keys} from "./Objects"
+
+
 const ValidTypeTag = "valid"
 const InvalidTypeTag = "invalid"
 type ValidationTypeTag = typeof ValidTypeTag | typeof InvalidTypeTag
@@ -12,6 +16,8 @@ interface Invalid<E>{
   errors: E[]
 }
 
+
+
 type Validated<E, A> = Valid<A> | Invalid<E>
 
 
@@ -19,6 +25,14 @@ type Validated<E, A> = Valid<A> | Invalid<E>
 //   map<E, A, B>(v: Validated<E, A> , f: (a: A) => B): Validated<E, B>
 //   fold<E, A, B>(v: Validated<E, A>, ok: (a: A) => B, error: (errors: E) => B): B
 // }
+
+type ErrorOf<V> = V extends Validated<infer E, any> ? E : never
+type ErrorOfObject<O> = ({ [K in keyof O]: ErrorOf<O[K]> })[keyof O]
+// type ErrorOfTuple<O> = ({ [K in keyof O]: ErrorOf<O[K]> }) extends Array<infer E> ? E : never
+type ValueOf<V> = V extends Validated<any, infer A> ? A : never
+type ValueOfObject<O> = { [K in keyof O]: ValueOf<O[K]> }
+// type ValueOfTuple<O> = { [K in keyof O]: ValueOf<O[K]> }
+
 
 
 function identity<T>(t: T): T { return t; }
@@ -51,9 +65,44 @@ const Validated = {
   ok<A>(value: A): Valid<A>  {
     return { type: ValidTypeTag, value }
   },
-  errors<E>(errors: E[]): Invalid<E> { return {type: InvalidTypeTag, errors: errors}}
+  errors<E>(errors: E[]): Invalid<E> { return {type: InvalidTypeTag, errors: errors}},
+
+  combine<O extends { [k: string]: Validated<any, any>}>(o: O): Validated<ErrorOfObject<O>, ValueOfObject<O>> {
+    const errors: any[] = []
+    const values: { [K in keyof O]?: any } = {}
+    keys(o).forEach(key => {
+      const validated: Validated<any, any> = o[key]
+      if (validated.type === ValidTypeTag) {
+        values[key] = validated.value
+      } else if (validated.type === InvalidTypeTag) {
+        validated.errors.forEach((e: any) => {
+          errors.push(e)
+        })
+      } else {
+        const exhaustive: never = validated
+        throw exhaustive
+      }
+    })
+
+    if (errors.length > 0) {
+      return Validated.errors(errors)
+    } else {
+      return Validated.ok(values as any)
+    }
+  }
 }
 
+declare const v1: Validated<boolean, number>
+declare const v2: Validated<string, Date>
+
+const result = Validated.combine({
+  k1: v1,
+  k2: v2
+})
+
+if(result.type === "valid") {
+  result.value.
+}
 
 
 
