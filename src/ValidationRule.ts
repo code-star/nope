@@ -1,3 +1,5 @@
+import { keys } from "./Objects";
+
 type Validated<E, A> = Valid<A> | Invalid<E>
 
 type Valid<A> = Readonly<{
@@ -10,6 +12,10 @@ type Invalid<E> = Readonly<{
   errors: E[]
 }>
 
+type ValidatedOfObject<E, O> = {
+  [K in keyof O]: Validated<Element, O[K]>
+}
+
 export type ValidationRule<P, E, A> = (p: P) => Validated<E, A>
 
 type ParameterOf<V> = V extends ValidationRule<infer P, any, any> ? P : never
@@ -20,8 +26,15 @@ type ValueOf<V> = V extends ValidationRule<any, any, infer A> ? A : never
 type ValueOfObject<O> = { [K in keyof O]: ValueOf<O[K]> }
 
 export const ValidationRule = {
-  combine<O>(_o: O): ValidationRule<ParameterOfObject<O>, ErrorOfObject<O>, ValueOfObject<O>> {
-    return null as any
+  combine<O extends {[k: string]: ValidationRule<any, any, any>}>(vo: O): ValidationRule<ParameterOfObject<O>, ErrorOfObject<O>, ValueOfObject<O>> {
+    return (po: ParameterOfObject<O>) => {
+      const acc: Partial<ValidatedOfObject<ErrorOfObject<O>, ValueOfObject<O>>> = {      }
+      keys(po).forEach(key => {
+        const validationRule = vo[key]
+        acc[key] = validationRule(po[key])
+      })
+      return null as any
+    }
   }
 }
 
@@ -32,6 +45,9 @@ const x = ValidationRule.combine({
   k2: v2
 })
 const y = x({
-  k1: 4,
+  k1: '',
   k2: 4
 })
+if (y.type === 'ok') {
+  y.value.
+}
