@@ -26,9 +26,14 @@ function identity<T>(t: T): T { return t; }
 class ValidatedOps<E, A> {
   constructor(readonly value: Validated<E, A>) {}
 
-  map<B>(v: Validated<E, A>, f: (a: A) => B): Validated<E, B> {
-    return this.fold(v => Validated.ok(f(v)), Validated.error)
-  },
+  map<B>(f: (a: A) => B): Validated<E, B> {
+    return this.fold<Validated<E,B>>(v => Validated.ok(f(v)), Validated.errors)
+  }
+
+  flatMap<B>(f: (a: A) => Validated<E, B>): Validated<E,B> {
+    return this.fold(f, Validated.errors)
+  }
+
 
   fold<B>(ok: (a: A) => B, error: (errors: E[]) => B): B {
     switch(this.value.type) {
@@ -38,14 +43,15 @@ class ValidatedOps<E, A> {
         return error(this.value.errors)
     }
   }
-
 }
 
 
 
 const Validated = {
-  ok<A>(value: A): Valid<A>  { return { type: ValidTypeTag, value }},
-  error<E>(errors: E[]): Invalid<E> { return {type: InvalidTypeTag, errors: error}}
+  ok<A>(value: A): Valid<A>  {
+    return { type: ValidTypeTag, value }
+  },
+  errors<E>(errors: E[]): Invalid<E> { return {type: InvalidTypeTag, errors: errors}}
 }
 
 
@@ -71,92 +77,87 @@ abstract class AbstractValidated<E,A> {
 
 
 
-class Valid<A> extends AbstractValidated<never, A> {
-
-  constructor(readonly value: A) {
-    super()
-  }
-
-  map<B>(fn: (a: A) => B): Validated<never, B> {
-    return new Valid<B>(fn(this.value))
-  }
-
-  flatMap<E, B>(fn: (a: A) => Validated<E, B>): Validated<E, B> {
-    return fn(this.value)
-  }
-
-  isValid(): this is Valid<A> {
-    return true;
-  }
-
-
-
-  // mapError<F>(fn: (e: E) => F): Validated<F, A> {
-  //   return new Valid<F, A>(this.value)
-  // }
-  //
-  // fold<B>(ok: (v: Valid<E, A>) => B, error: (v: Invalid<E, A>) => B): B {
-  //   return ok(this)
-  // }
-  //
-  // andThen<B>(fn: (a: A) => Validated<E, A>): Validated<E, A> {
-  //   return fn(this.value)
-  // }
-  //
-  // withValueOf<B>(that: Validated<E, B>): Validated<E, B> {
-  //   return that
-  // }
-  //
-  // fromEither<A>(this: Validated<A, A[]>): A[] {
-  //   return Validated.fromEither(this)
-  // }
-}
-
-
-declare const a: Validated<number, string>
-
-a.map(f => f + "!")
+// class Valid<A> extends AbstractValidated<never, A> {
+//
+//   constructor(readonly value: A) {
+//     super()
+//   }
+//
+//   map<B>(fn: (a: A) => B): Validated<never, B> {
+//     return new Valid<B>(fn(this.value))
+//   }
+//
+//   flatMap<E, B>(fn: (a: A) => Validated<E, B>): Validated<E, B> {
+//     return fn(this.value)
+//   }
+//
+//   isValid(): this is Valid<A> {
+//     return true;
+//   }
+//
+//
+//
+//   mapError<F>(fn: (e: E) => F): Validated<F, A> {
+//     return new Valid<F, A>(this.value)
+//   }
+//
+//   fold<B>(ok: (v: Valid<E, A>) => B, error: (v: Invalid<E, A>) => B): B {
+//     return ok(this)
+//   }
+//
+//   andThen<B>(fn: (a: A) => Validated<E, A>): Validated<E, A> {
+//     return fn(this.value)
+//   }
+//
+//   withValueOf<B>(that: Validated<E, B>): Validated<E, B> {
+//     return that
+//   }
+//
+//   fromEither<A>(this: Validated<A, A[]>): A[] {
+//     return Validated.fromEither(this)
+//   }
+// }
 
 
-class Invalid<E> extends AbstractValidated<E, never> {
-  constructor(readonly errors: E[]) {
-    super()
-  }
-
-  isValid(): this is Valid<never> {
-    return false
-  }
-
-  map<B>(_: (a: never) => B): Validated<E, B> {
-    return this
-  }
-
-  flatMap<B>(_: (a: never) => Validated<E, B>): Validated<E, B> {
-    return this
-  }
-
-  // mapError<F>(fn: (e: E) => F): Validated<F, A> {
-  //   return new Invalid<F, A>(this.errors.map(fn))
-  // }
-  //
-  // fold<B>(ok: (v: Valid<E, A>) => B, error: (v: Invalid<E, A>) => B): B {
-  //   return error(this)
-  // }
-  //
-  // andThen<B>(fn: (a: A) => Validated<E, B>): Validated<E, B> {
-  //   return Validated.errors(this.errors)
-  // }
-  //
-  // withValueOf<B>(that: Validated<E, B>): Validated<E, B> {
-  //   return that.isValid()
-  //     ? Validated.errors(this.errors)
-  //     : Validated.errors([...this.errors, ...that.errors])
-  // }
-  //
-  // fromEither<A>(this: Validated<A, A[]>): A[] {
-  //   return Validated.fromEither(this)
-  // }
-}
+// class Invalid<E> extends AbstractValidated<E, never> {
+//   constructor(readonly errors: E[]) {
+//     super()
+//   }
+//
+//   isValid(): this is Valid<never> {
+//     return false
+//   }
+//
+//   map<B>(_: (a: never) => B): Validated<E, B> {
+//     return this
+//   }
+//
+//   flatMap<B>(_: (a: never) => Validated<E, B>): Validated<E, B> {
+//     return this
+//   }
+//
+//   mapError<F>(fn: (e: E) => F): Validated<F, A> {
+//     return new Invalid<F, A>(this.errors.map(fn))
+//   }
+//
+//   fold<B>(ok: (v: Valid<E, A>) => B, error: (v: Invalid<E, A>) => B): B {
+//     return error(this)
+//   }
+//
+//   andThen<B>(fn: (a: A) => Validated<E, B>): Validated<E, B> {
+//     return Validated.errors(this.errors)
+//   }
+//
+//   withValueOf<B>(that: Validated<E, B>): Validated<E, B> {
+//     return that.isValid()
+//       ? Validated.errors(this.errors)
+//       : Validated.errors([...this.errors, ...that.errors])
+//   }
+//
+//   fromEither<A>(this: Validated<A, A[]>): A[] {
+//     return Validated.fromEither(this)
+//   }
+// }
 
 
 
