@@ -6,7 +6,7 @@ export class ValidationRule<P, E, A> {
   static compose<E1, E2, A, B, C>(left: ValidationRule<A, E1, B>, right: ValidationRule<B, E2, C>): ValidationRule<A, E1 | E2, C> {
     return new ValidationRule(
       (a: A): Validated<E1 | E2, C> => {
-        return left.apply(a).flatMap(b => right.apply(b))
+        return left.apply(a).flatMap<E2, C>((b: B): Validated<E2, C> => right.apply(b))
       }
     )
   }
