@@ -8,14 +8,12 @@ type ErrorOfCombinedValidated<O> = Partial<{ [K in keyof O]: ErrorOfValidated<O[
 export type ValueOfValidated<V> = V extends Valid<infer A> ? A : never
 type ValueOfCombinedValidated<O> = { [K in keyof O]: ValueOfValidated<O[K]> }
 
-type CombineObject = {
+type ObjectToCombine = {
   [k: string]: Validated<any, any>
 }
 type CombinedValidated<O> = Validated<ErrorOfCombinedValidated<O>, ValueOfCombinedValidated<O>>
 
 export abstract class Validated<E, A> {
-  // constructor(readonly value: Validated<E, A>) {}
-
   map<B>(f: (a: A) => B): Validated<E, B> {
     return this.fold<Validated<E, B>>(v => Validated.ok(f(v)), Validated.error)
   }
@@ -72,7 +70,7 @@ export abstract class Validated<E, A> {
     }
   }
 
-  static combine<O extends CombineObject>(o: O): CombinedValidated<O> {
+  static combine<O extends ObjectToCombine>(o: O): CombinedValidated<O> {
     let hasErrors = false
     const errors: ErrorOfCombinedValidated<O> = {}
     const values: Partial<ValueOfCombinedValidated<O>> = {}
