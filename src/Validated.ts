@@ -30,8 +30,8 @@ export abstract class Validated<E, A> {
     return this.fold<Validated<EE | E, A>>(a => (pred(a) ? Validated.ok(a) : Validated.error(toError(a))), Validated.error)
   }
 
-  recover(f: (error: E) => Valid<A>): Valid<A> {
-    return this.fold<Valid<A>>(Validated.ok, f)
+  recover<B>(f: (error: E) => Valid<B>): Valid<A | B> {
+    return this.fold<Valid<A | B>>(Validated.ok, f)
   }
 
   abstract isValid(): this is Valid<A>
@@ -92,7 +92,7 @@ export abstract class Validated<E, A> {
   }
 }
 
-class Valid<A> extends Validated<never, A> {
+export class Valid<A> extends Validated<never, A> {
   static readonly type = ValidTypeTag
 
   constructor(readonly value: A) {
@@ -108,7 +108,7 @@ class Valid<A> extends Validated<never, A> {
   }
 }
 
-class Invalid<E> extends Validated<E, never> {
+export class Invalid<E> extends Validated<E, never> {
   static readonly type = InvalidTypeTag
 
   constructor(readonly error: E) {
