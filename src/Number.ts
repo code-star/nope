@@ -1,5 +1,5 @@
 import { ValidationRule } from './ValidationRule'
-import { Validated } from './validation'
+import { Validated } from './Validated'
 
 export const NOT_A_NUMBER: 'NOT_A_NUMBER' = 'NOT_A_NUMBER'
 
@@ -9,7 +9,7 @@ export function number(): ValidationRule<unknown, typeof NOT_A_NUMBER, number> {
       if (typeof u === 'number') {
         return Validated.ok(u)
       } else {
-        return Validated.errors([NOT_A_NUMBER])
+        return Validated.error(NOT_A_NUMBER)
       }
     }
   )
@@ -23,7 +23,7 @@ export function positive(): ValidationRule<number, typeof NOT_POSITIVE, number> 
       if (n >= 0) {
         return Validated.ok(n)
       } else {
-        return Validated.errors([NOT_POSITIVE])
+        return Validated.error(NOT_POSITIVE)
       }
     }
   )

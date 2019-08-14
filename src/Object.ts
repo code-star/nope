@@ -1,4 +1,4 @@
-import { Validated } from './validation'
+import { Validated } from './Validated'
 import { ValidationRule } from './ValidationRule'
 
 export const NOT_AN_OBJECT: 'NOT_AN_OBJECT' = 'NOT_AN_OBJECT'
@@ -9,7 +9,7 @@ export function object(): ValidationRule<unknown, typeof NOT_AN_OBJECT, object> 
       if (typeof u === 'object' && u !== null) {
         return Validated.ok(u)
       } else {
-        return Validated.errors([NOT_AN_OBJECT])
+        return Validated.error(NOT_AN_OBJECT)
       }
     }
   )

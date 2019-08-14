@@ -38,11 +38,15 @@ describe('ValidationRule', () => {
         s: true
       }
 
-      const expected = [NOT_POSITIVE, NOT_A_STRING, NOT_A_BOOLEAN]
+      const expected = {
+        n: NOT_POSITIVE,
+        s: NOT_A_STRING,
+        b: NOT_A_BOOLEAN
+      }
 
       const validated = validator.apply(invalidObject)
       if (validated.isInvalid()) {
-        expect(validated.errors).toEqual(expect.arrayContaining(expected))
+        expect(validated.error).toEqual(expected)
       } else {
         fail()
       }
@@ -51,11 +55,11 @@ describe('ValidationRule', () => {
     it('should know when the input is not an object', () => {
       const invalidObject = 35
 
-      const expected = [NOT_AN_OBJECT]
+      const expected = NOT_AN_OBJECT
 
       const validated = validator.apply(invalidObject)
       if (validated.isInvalid()) {
-        expect(validated.errors).toEqual(expect.arrayContaining(expected))
+        expect(validated.error).toEqual(expected)
       } else {
         fail()
       }

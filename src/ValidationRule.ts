@@ -1,5 +1,5 @@
 import { keys } from './Objects'
-import { Validated } from './validation'
+import { Validated } from './Validated'
 import { positive, NOT_POSITIVE } from './Number'
 
 export class ValidationRule<P, E, A> {
