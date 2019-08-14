@@ -26,8 +26,8 @@ export abstract class Validated<E, A> {
     return this.fold<Validated<E | EE, B>>(f, Validated.error)
   }
 
-  filter(pred: (a: A) => boolean, toError: (error: A) => E): Validated<E, A> {
-    return this.fold(a => (pred(a) ? Validated.ok(a) : Validated.error(toError(a))), Validated.error)
+  filter<EE>(pred: (a: A) => boolean, toError: (error: A) => EE): Validated<E | EE, A> {
+    return this.fold<Validated<EE | E, A>>(a => (pred(a) ? Validated.ok(a) : Validated.error(toError(a))), Validated.error)
   }
 
   recover(f: (error: E) => Valid<A>): Valid<A> {
