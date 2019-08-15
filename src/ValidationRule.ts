@@ -1,5 +1,5 @@
 import { keys } from './Objects'
-import { Validated } from './Validated'
+import { Validated, CombinedValidated, ValueOfValidated, ErrorOfValidated } from './Validated'
 import { positive, NOT_POSITIVE } from './Number'
 
 export class ValidationRule<P, E, A> {
@@ -32,16 +32,21 @@ export class ValidationRule<P, E, A> {
   // }
 
   static combine<O extends { [k: string]: ValidationRule<any, any, any> }>(
-    vo: O
-  ): ValidationRule<ParameterOfValidationRuleObject<O>, ErrorOfValidationRuleObject<O>, ValueOfValidationRuleObject<O>> {
+    o: O
+  ): ValidationRule<
+    ParameterOfCombinedValidationRule<O>,
+    ErrorOfValidated<CombinedValidated<ValidatedOfCombinedValidationRule<O>>>,
+    ValueOfValidated<CombinedValidated<ValidatedOfCombinedValidationRule<O>>>
+  > {
     return new ValidationRule(
-      (po: ParameterOfValidationRuleObject<O>): Validated<ErrorOfValidationRuleObject<O>, ValueOfValidationRuleObject<O>> => {
-        const acc: Partial<Record<keyof O, Validated<any, any>>> = {}
-        keys(vo).forEach(key => {
-          const validationRule = vo[key]
-          acc[key] = validationRule.apply(po[key])
+      (p: ParameterOfCombinedValidationRule<O>): CombinedValidated<ValidatedOfCombinedValidationRule<O>> => {
+        const acc: Partial<ValidatedOfCombinedValidationRule<O>> = {}
+        keys(o).forEach(key => {
+          const validationRule: ValidationRule<ParameterOfValidationRule<O[keyof O]>, ErrorOfValidationRule<O[keyof O]>, ValueOfValidationRule<O[keyof O]>> = o[key]
+          const validated: Validated<ErrorOfValidationRule<O[keyof O]>, ValueOfValidationRule<O[keyof O]>> = validationRule.apply(p[key])
+          acc[key] = validated
         })
-        return Validated.combine(acc as any) as any
+        return Validated.combine(acc as ValidatedOfCombinedValidationRule<O>)
       }
     )
   }
@@ -71,14 +76,14 @@ export class ValidationRule<P, E, A> {
     return new ValidationRule<P, E | F, A>(p => this.apply(p).filter(pred, toError))
   }
 
-  recover<B>(f: (error: E) => B): ValidationRule<P, never, A | B> {
+  public recover<B>(f: (error: E) => B): ValidationRule<P, never, A | B> {
     return new ValidationRule<P, never, A | B>(p => this.apply(p).recover(f))
   }
 
   public shape<P, E, O extends { [k: string]: ValidationRule<unknown, any, any> }>(
     this: ValidationRule<P, E, object>,
     o: O
-  ): ValidationRule<P, E | ErrorOfValidationRuleObject<O>, ValueOfValidationRuleObject<O>> {
+  ): ValidationRule<P, E | ErrorOfCombinedValidationRule<O>, ValueOfCombinedValidationRule<O>> {
     return ValidationRule.compose(
       this,
       ValidationRule.combine(o) as any
@@ -91,11 +96,9 @@ export class ValidationRule<P, E, A> {
 }
 
 type ParameterOfValidationRule<V> = V extends ValidationRule<infer P, any, any> ? P : never
-type ParameterOfValidationRuleObject<O> = { [K in keyof O]: ParameterOfValidationRule<O[K]> }
-// type ParameterOfValidationRuleTuple<O> = { [K in keyof O]: ParameterOfValidationRule<O[K]> }
+type ParameterOfCombinedValidationRule<O> = { [K in keyof O]: ParameterOfValidationRule<O[K]> }
 type ErrorOfValidationRule<V> = V extends ValidationRule<any, infer E, any> ? E : never
-export type ErrorOfValidationRuleObject<O> = ({ [K in keyof O]: ErrorOfValidationRule<O[K]> })[keyof O]
-// type ErrorOfValidationRuleTuple<O> = ({ [K in keyof O]: ErrorOfValidationRule<O[K]> }) extends Array<infer E> ? E : never
+type ErrorOfCombinedValidationRule<O> = Partial<{ [K in keyof O]: ErrorOfValidationRule<O[K]> }>
 type ValueOfValidationRule<V> = V extends ValidationRule<any, any, infer A> ? A : never
-export type ValueOfValidationRuleObject<O> = { [K in keyof O]: ValueOfValidationRule<O[K]> }
-// type ValueOfValidationRuleTuple<O> = { [K in keyof O]: ValueOfValidationRule<O[K]> }
+type ValueOfCombinedValidationRule<O> = { [K in keyof O]: ValueOfValidationRule<O[K]> }
+type ValidatedOfCombinedValidationRule<O> = { [K in keyof O]: Validated<ErrorOfValidationRule<O[K]>, ValueOfValidationRule<O[K]>> }

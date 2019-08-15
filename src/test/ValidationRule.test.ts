@@ -131,6 +131,83 @@ describe('ValidationRule', () => {
     })
   })
 
+  describe('combine', () => {
+    it('should return a valid object if all values are valid', () => {
+      type ToCombine = Readonly<{
+        koala: ValidationRule<string, boolean, string>
+        tiger: ValidationRule<number, string, number>
+        duck: ValidationRule<boolean, number, boolean>
+      }>
+
+      const alwaysAllValid: ToCombine = {
+        koala: ValidationRule.create(Validated.ok),
+        tiger: ValidationRule.create(Validated.ok),
+        duck: ValidationRule.create(Validated.ok)
+      }
+
+      const toVerify = ValidationRule.combine<ToCombine>(alwaysAllValid).apply({
+        koala: 'Munch',
+        tiger: 4,
+        duck: true
+      })
+      const expected = Validated.ok({
+        koala: 'Munch',
+        tiger: 4,
+        duck: true
+      })
+      expect(toVerify).toEqual(expected)
+    })
+
+    it('should return a partial valid object if some values are invalid', () => {
+      type ToCombine = Readonly<{
+        koala: ValidationRule<boolean, boolean, string>
+        tiger: ValidationRule<number, string, number>
+        duck: ValidationRule<number, number, boolean>
+      }>
+
+      const alwaysSomeInvalid: ToCombine = {
+        koala: ValidationRule.create(Validated.error),
+        tiger: ValidationRule.create(Validated.ok),
+        duck: ValidationRule.create(Validated.error)
+      }
+      const toVerify = ValidationRule.combine<ToCombine>(alwaysSomeInvalid).apply({
+        koala: true,
+        tiger: 4,
+        duck: 11
+      })
+      const expected = Validated.error({
+        koala: true,
+        duck: 11
+      })
+      expect(toVerify).toEqual(expected)
+    })
+
+    it('should return a complete valid object if all values are invalid', () => {
+      type ToCombine = Readonly<{
+        koala: ValidationRule<boolean, boolean, string>
+        tiger: ValidationRule<string, string, number>
+        duck: ValidationRule<number, number, boolean>
+      }>
+
+      const alwaysAllInvalid: ToCombine = {
+        koala: ValidationRule.create(Validated.error),
+        tiger: ValidationRule.create(Validated.error),
+        duck: ValidationRule.create(Validated.error)
+      }
+      const toVerify = ValidationRule.combine<ToCombine>(alwaysAllInvalid).apply({
+        koala: true,
+        tiger: 'Woah',
+        duck: 11
+      })
+      const expected = Validated.error({
+        koala: true,
+        tiger: 'Woah',
+        duck: 11
+      })
+      expect(toVerify).toEqual(expected)
+    })
+  })
+
   describe('shape', () => {
     const validator = object().shape({
       n: number().positive(),

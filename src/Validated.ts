@@ -12,7 +12,7 @@ type ValueOfCombinedValidated<O> = { [K in keyof O]: ValueOfValidated<O[K]> }
 type ObjectToCombine = {
   [k: string]: Validated<any, any>
 }
-type CombinedValidated<O> = Validated<ErrorOfCombinedValidated<O>, ValueOfCombinedValidated<O>>
+export type CombinedValidated<O> = Validated<ErrorOfCombinedValidated<O>, ValueOfCombinedValidated<O>>
 
 export abstract class Validated<E, A> {
   map<B>(f: (a: A) => B): Validated<E, B> {
