@@ -46,6 +46,40 @@ describe('ValidationRule', () => {
     })
   })
 
+  describe('composeWith', () => {
+    const isNumber = ValidationRule.create(
+      (s: string): Validated<string, number> => {
+        const n = parseInt(s, 10)
+        if (isNaN(n)) {
+          return Validated.error(`${s} is not a number`)
+        } else {
+          return Validated.ok(n)
+        }
+      }
+    )
+
+    it('should return the left error if the left value is invalid', () => {
+      const alwaysInvalid: ValidationRule<boolean, boolean, string> = ValidationRule.create(b => Validated.error(b))
+      const toVerify: Validated<boolean | string, number> = alwaysInvalid.composeWith(isNumber).apply(false)
+      const expected: Validated<boolean | string, number> = Validated.error(false)
+      expect(toVerify).toEqual(expected)
+    })
+
+    it('should return the inner error if the outer value is valid but the inner is not', () => {
+      const alwaysValid: ValidationRule<string, boolean, string> = ValidationRule.create(s => Validated.ok(s))
+      const toVerify: Validated<boolean | string, number> = alwaysValid.composeWith(isNumber).apply('NaN')
+      const expected: Validated<boolean | string, number> = Validated.error(`NaN is not a number`)
+      expect(toVerify).toEqual(expected)
+    })
+
+    it('should return the inner value if both the outer value and the inner value are valid', () => {
+      const alwaysValid: ValidationRule<string, boolean, string> = ValidationRule.create(s => Validated.ok(s))
+      const toVerify: Validated<boolean | string, number> = alwaysValid.composeWith(isNumber).apply('44')
+      const expected: Validated<boolean | string, number> = Validated.ok(44)
+      expect(toVerify).toEqual(expected)
+    })
+  })
+
   describe('shape', () => {
     const validator = object().shape({
       n: number().positive(),

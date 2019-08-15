@@ -42,36 +42,33 @@ describe('Validated', () => {
   })
 
   describe('flatMap', () => {
-    const NOT_A_NUMBER: 'NOT_A_NUMBER' = 'NOT_A_NUMBER'
-    function isNumber(s: string): Validated<typeof NOT_A_NUMBER, number> {
+    function isNumber(s: string): Validated<string, number> {
       const n = parseInt(s, 10)
       if (isNaN(n)) {
-        return Validated.error(NOT_A_NUMBER)
+        return Validated.error(`${s} is not a number`)
       } else {
         return Validated.ok(n)
       }
     }
 
-    const OTHER_ERROR: 'OTHER_ERROR' = 'OTHER_ERROR'
-
     it('should return the outer error if the outer value is invalid', () => {
-      const invalid: Validated<typeof OTHER_ERROR, string> = Validated.error(OTHER_ERROR)
-      const toVerify: Validated<typeof OTHER_ERROR | typeof NOT_A_NUMBER, number> = invalid.flatMap(isNumber)
-      const expected: Validated<typeof OTHER_ERROR | typeof NOT_A_NUMBER, number> = Validated.error(OTHER_ERROR)
+      const invalid: Validated<boolean, string> = Validated.error(false)
+      const toVerify: Validated<boolean | string, number> = invalid.flatMap(isNumber)
+      const expected: Validated<boolean | string, number> = Validated.error(false)
       expect(toVerify).toEqual(expected)
     })
 
     it('should return the inner error if the outer value is valid but the inner is not', () => {
-      const valid: Validated<typeof OTHER_ERROR, string> = Validated.ok('NaN')
-      const toVerify: Validated<typeof OTHER_ERROR | typeof NOT_A_NUMBER, number> = valid.flatMap(isNumber)
-      const expected: Validated<typeof OTHER_ERROR | typeof NOT_A_NUMBER, number> = Validated.error(NOT_A_NUMBER)
+      const valid: Validated<boolean, string> = Validated.ok('NaN')
+      const toVerify: Validated<boolean | string, number> = valid.flatMap(isNumber)
+      const expected: Validated<boolean | string, number> = Validated.error(`NaN is not a number`)
       expect(toVerify).toEqual(expected)
     })
 
     it('should return the inner value if both the outer value and the inner value are valid', () => {
-      const valid: Validated<typeof OTHER_ERROR, string> = Validated.ok('44')
-      const toVerify: Validated<typeof OTHER_ERROR | typeof NOT_A_NUMBER, number> = valid.flatMap(isNumber)
-      const expected: Validated<typeof OTHER_ERROR | typeof NOT_A_NUMBER, number> = Validated.ok(44)
+      const valid: Validated<boolean, string> = Validated.ok('44')
+      const toVerify: Validated<boolean | string, number> = valid.flatMap(isNumber)
+      const expected: Validated<boolean | string, number> = Validated.ok(44)
       expect(toVerify).toEqual(expected)
     })
   })
