@@ -2,6 +2,7 @@ import { keys } from './Objects'
 import { Validated, CombinedValidated, ValueOfValidated, ErrorOfValidated } from './Validated'
 import { positive, NOT_POSITIVE } from './Number'
 import { EMPTY_STRING, notEmptyString } from './String'
+import { notUndefined, IS_UNDEFINED } from './Generic'
 
 export class ValidationRule<P, E, A> {
   static compose<E, F, A, B, C>(left: ValidationRule<A, E, B>, right: ValidationRule<B, F, C>): ValidationRule<A, E | F, C> {
@@ -87,6 +88,10 @@ export class ValidationRule<P, E, A> {
 
   public notEmptyString<P, E>(this: ValidationRule<P, E, string>): ValidationRule<P, E | typeof EMPTY_STRING, string> {
     return this.composeWith(notEmptyString())
+  }
+
+  public required(): ValidationRule<P | undefined, E | typeof IS_UNDEFINED, A> {
+    return notUndefined<P>().composeWith(this)
   }
 }
 
