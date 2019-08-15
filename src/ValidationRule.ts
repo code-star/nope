@@ -3,10 +3,10 @@ import { Validated } from './Validated'
 import { positive, NOT_POSITIVE } from './Number'
 
 export class ValidationRule<P, E, A> {
-  static compose<E1, E2, A, B, C>(left: ValidationRule<A, E1, B>, right: ValidationRule<B, E2, C>): ValidationRule<A, E1 | E2, C> {
+  static compose<E, F, A, B, C>(left: ValidationRule<A, E, B>, right: ValidationRule<B, F, C>): ValidationRule<A, E | F, C> {
     return new ValidationRule(
-      (a: A): Validated<E1 | E2, C> => {
-        return left.apply(a).flatMap<E2, C>((b: B): Validated<E2, C> => right.apply(b))
+      (a: A): Validated<E | F, C> => {
+        return left.apply(a).flatMap<F, C>((b: B): Validated<F, C> => right.apply(b))
       }
     )
   }
@@ -56,11 +56,11 @@ export class ValidationRule<P, E, A> {
     return new ValidationRule<P, E, B>(p => this.apply(p).map(fn))
   }
 
-  public mapError<EE>(fn: (e: E) => EE): ValidationRule<P, EE, A> {
-    return new ValidationRule<P, EE, A>(p => this.apply(p).mapError(fn))
+  public mapError<F>(fn: (e: E) => F): ValidationRule<P, F, A> {
+    return new ValidationRule<P, F, A>(p => this.apply(p).mapError(fn))
   }
 
-  public composeWith<EE, C>(other: ValidationRule<A, EE, C>): ValidationRule<P, E | EE, C> {
+  public composeWith<F, C>(other: ValidationRule<A, F, C>): ValidationRule<P, E | F, C> {
     return ValidationRule.compose(
       this,
       other

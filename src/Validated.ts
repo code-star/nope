@@ -22,12 +22,12 @@ export abstract class Validated<E, A> {
     return this.fold<Validated<F, A>>(Validated.ok, errors => Validated.error(f(errors)))
   }
 
-  flatMap<EE, B>(f: (a: A) => Validated<EE, B>): Validated<E | EE, B> {
-    return this.fold<Validated<E | EE, B>>(f, Validated.error)
+  flatMap<F, B>(f: (a: A) => Validated<F, B>): Validated<E | F, B> {
+    return this.fold<Validated<E | F, B>>(f, Validated.error)
   }
 
-  filter<EE>(pred: (a: A) => boolean, toError: (error: A) => EE): Validated<E | EE, A> {
-    return this.fold<Validated<EE | E, A>>(a => (pred(a) ? Validated.ok(a) : Validated.error(toError(a))), Validated.error)
+  filter<F>(pred: (a: A) => boolean, toError: (error: A) => F): Validated<E | F, A> {
+    return this.fold<Validated<F | E, A>>(a => (pred(a) ? Validated.ok(a) : Validated.error(toError(a))), Validated.error)
   }
 
   recover<B>(f: (error: E) => Valid<B>): Valid<A | B> {
