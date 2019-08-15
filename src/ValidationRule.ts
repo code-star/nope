@@ -1,6 +1,7 @@
 import { keys } from './Objects'
 import { Validated, CombinedValidated, ValueOfValidated, ErrorOfValidated } from './Validated'
 import { positive, NOT_POSITIVE } from './Number'
+import { EMPTY_STRING, notEmptyString } from './String'
 
 export class ValidationRule<P, E, A> {
   static compose<E, F, A, B, C>(left: ValidationRule<A, E, B>, right: ValidationRule<B, F, C>): ValidationRule<A, E | F, C> {
@@ -80,25 +81,17 @@ export class ValidationRule<P, E, A> {
     return new ValidationRule<P, never, A | B>(p => this.apply(p).recover(f))
   }
 
-  public shape<P, E, O extends { [k: string]: ValidationRule<unknown, any, any> }>(
-    this: ValidationRule<P, E, object>,
-    o: O
-  ): ValidationRule<P, E | ErrorOfCombinedValidationRule<O>, ValueOfCombinedValidationRule<O>> {
-    return ValidationRule.compose(
-      this,
-      ValidationRule.combine(o) as any
-    )
-  }
-
   public positive<P, E>(this: ValidationRule<P, E, number>): ValidationRule<P, E | typeof NOT_POSITIVE, number> {
     return this.composeWith(positive())
+  }
+
+  public notEmptyString<P, E>(this: ValidationRule<P, E, string>): ValidationRule<P, E | typeof EMPTY_STRING, string> {
+    return this.composeWith(notEmptyString())
   }
 }
 
 type ParameterOfValidationRule<V> = V extends ValidationRule<infer P, any, any> ? P : never
 type ParameterOfCombinedValidationRule<O> = { [K in keyof O]: ParameterOfValidationRule<O[K]> }
 type ErrorOfValidationRule<V> = V extends ValidationRule<any, infer E, any> ? E : never
-type ErrorOfCombinedValidationRule<O> = Partial<{ [K in keyof O]: ErrorOfValidationRule<O[K]> }>
 type ValueOfValidationRule<V> = V extends ValidationRule<any, any, infer A> ? A : never
-type ValueOfCombinedValidationRule<O> = { [K in keyof O]: ValueOfValidationRule<O[K]> }
 type ValidatedOfCombinedValidationRule<O> = { [K in keyof O]: Validated<ErrorOfValidationRule<O[K]>, ValueOfValidationRule<O[K]>> }
