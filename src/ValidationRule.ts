@@ -67,6 +67,14 @@ export class ValidationRule<P, E, A> {
     )
   }
 
+  public filter<F>(pred: (a: A) => boolean, toError: (error: A) => F): ValidationRule<P, E | F, A> {
+    return new ValidationRule<P, E | F, A>(p => this.apply(p).filter(pred, toError))
+  }
+
+  recover<B>(f: (error: E) => B): ValidationRule<P, never, A | B> {
+    return new ValidationRule<P, never, A | B>(p => this.apply(p).recover(f))
+  }
+
   public shape<P, E, O extends { [k: string]: ValidationRule<unknown, any, any> }>(
     this: ValidationRule<P, E, object>,
     o: O

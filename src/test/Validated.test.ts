@@ -1,4 +1,4 @@
-import { Validated, Valid } from '../Validated'
+import { Validated } from '../Validated'
 
 describe('Validated', () => {
   describe('map', () => {
@@ -78,49 +78,48 @@ describe('Validated', () => {
       return n % 2 === 0
     }
 
-    const OTHER_ERROR: 'OTHER_ERROR' = 'OTHER_ERROR'
-    const NOT_EVEN: 'NOT_EVEN' = 'NOT_EVEN'
+    function numberNotEven(n: number): string {
+      return `${n} is not even`
+    }
 
     it('should return the original value if the original value is valid if the predicate returns true', () => {
-      const valid: Validated<typeof OTHER_ERROR, number> = Validated.ok(2)
-      const toVerify: Validated<typeof OTHER_ERROR | typeof NOT_EVEN, number> = valid.filter(isEven, (): typeof NOT_EVEN => NOT_EVEN)
-      const expected: Validated<typeof OTHER_ERROR | typeof NOT_EVEN, number> = Validated.ok(2)
+      const valid: Validated<boolean, number> = Validated.ok(2)
+      const toVerify: Validated<boolean | string, number> = valid.filter(isEven, numberNotEven)
+      const expected: Validated<boolean | string, number> = Validated.ok(2)
       expect(toVerify).toEqual(expected)
     })
 
     it('should return the original error if the original value is invalid', () => {
-      const invalid: Validated<typeof OTHER_ERROR, number> = Validated.error(OTHER_ERROR)
-      const toVerify: Validated<typeof OTHER_ERROR | typeof NOT_EVEN, number> = invalid.filter(isEven, (): typeof NOT_EVEN => NOT_EVEN)
-      const expected: Validated<typeof OTHER_ERROR | typeof NOT_EVEN, number> = Validated.error(OTHER_ERROR)
+      const invalid: Validated<boolean, number> = Validated.error(false)
+      const toVerify: Validated<boolean | string, number> = invalid.filter(isEven, numberNotEven)
+      const expected: Validated<boolean | string, number> = Validated.error(false)
       expect(toVerify).toEqual(expected)
     })
 
     it('should return the newly supplied error if the original value is valid but the predicate returns false', () => {
-      const valid: Validated<typeof OTHER_ERROR, number> = Validated.ok(3)
-      const toVerify: Validated<typeof OTHER_ERROR | typeof NOT_EVEN, number> = valid.filter(isEven, (): typeof NOT_EVEN => NOT_EVEN)
-      const expected: Validated<typeof OTHER_ERROR | typeof NOT_EVEN, number> = Validated.error(NOT_EVEN)
+      const valid: Validated<boolean, number> = Validated.ok(3)
+      const toVerify: Validated<boolean | string, number> = valid.filter(isEven, numberNotEven)
+      const expected: Validated<boolean | string, number> = Validated.error('3 is not even')
       expect(toVerify).toEqual(expected)
     })
   })
 
   describe('recover', () => {
-    const SOME_ERROR: 'SOME_ERROR' = 'SOME_ERROR'
-
-    function toValidString(e: typeof SOME_ERROR): Valid<string> {
-      return Validated.ok(`Now valid ${e}`)
+    function toValidString(n: number): string {
+      return `Now valid ${n}`
     }
 
     it('should return the original value if the original value is valid', () => {
-      const valid: Validated<typeof SOME_ERROR, number> = Validated.ok(3)
-      const toVerify: Valid<number | string> = valid.recover(toValidString)
-      const expected: Valid<number | string> = Validated.ok(3)
+      const valid: Validated<number, boolean> = Validated.ok(true)
+      const toVerify: Validated<never, boolean | string> = valid.recover(toValidString)
+      const expected: Validated<never, boolean | string> = Validated.ok(true)
       expect(toVerify).toEqual(expected)
     })
 
     it('should return the recovered value if the original value is invalid', () => {
-      const invalid: Validated<typeof SOME_ERROR, number> = Validated.error(SOME_ERROR)
-      const toVerify: Valid<number | string> = invalid.recover(toValidString)
-      const expected: Valid<number | string> = Validated.ok('Now valid SOME_ERROR')
+      const invalid: Validated<number, boolean> = Validated.error(3)
+      const toVerify: Validated<never, boolean | string> = invalid.recover(toValidString)
+      const expected: Validated<never, boolean | string> = Validated.ok('Now valid 3')
       expect(toVerify).toEqual(expected)
     })
   })

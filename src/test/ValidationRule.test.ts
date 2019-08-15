@@ -80,6 +80,57 @@ describe('ValidationRule', () => {
     })
   })
 
+  describe('filter', () => {
+    function isEven(n: number): boolean {
+      return n % 2 === 0
+    }
+
+    function numberNotEven(n: number): string {
+      return `${n} is not even`
+    }
+
+    it('should return the original value if the original value is valid if the predicate returns true', () => {
+      const alwaysValid: ValidationRule<number, boolean, number> = ValidationRule.create(n => Validated.ok(n))
+      const toVerify: Validated<boolean | string, number> = alwaysValid.filter(isEven, numberNotEven).apply(2)
+      const expected: Validated<boolean | string, number> = Validated.ok(2)
+      expect(toVerify).toEqual(expected)
+    })
+
+    it('should return the original error if the original value is invalid', () => {
+      const alwaysInvalid: ValidationRule<boolean, boolean, number> = ValidationRule.create(b => Validated.error(b))
+      const toVerify: Validated<boolean | string, number> = alwaysInvalid.filter(isEven, numberNotEven).apply(false)
+      const expected: Validated<boolean | string, number> = Validated.error(false)
+      expect(toVerify).toEqual(expected)
+    })
+
+    it('should return the newly supplied error if the original value is valid but the predicate returns false', () => {
+      const alwaysValid: ValidationRule<number, boolean, number> = ValidationRule.create(n => Validated.ok(n))
+      const toVerify: Validated<boolean | string, number> = alwaysValid.filter(isEven, numberNotEven).apply(3)
+      const expected: Validated<boolean | string, number> = Validated.error('3 is not even')
+      expect(toVerify).toEqual(expected)
+    })
+  })
+
+  describe('recover', () => {
+    function toValidString(n: number): string {
+      return `Now valid ${n}`
+    }
+
+    it('should return the original value if the original value is valid', () => {
+      const alwaysValid: ValidationRule<boolean, number, boolean> = ValidationRule.create(b => Validated.ok(b))
+      const toVerify: Validated<never, boolean | string> = alwaysValid.recover(toValidString).apply(true)
+      const expected: Validated<never, boolean | string> = Validated.ok(true)
+      expect(toVerify).toEqual(expected)
+    })
+
+    it('should return the recovered value if the original value is invalid', () => {
+      const alwaysInvalid: ValidationRule<number, number, boolean> = ValidationRule.create(n => Validated.error(n))
+      const toVerify: Validated<never, boolean | string> = alwaysInvalid.recover(toValidString).apply(3)
+      const expected: Validated<never, boolean | string> = Validated.ok('Now valid 3')
+      expect(toVerify).toEqual(expected)
+    })
+  })
+
   describe('shape', () => {
     const validator = object().shape({
       n: number().positive(),
