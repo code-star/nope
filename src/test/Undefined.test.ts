@@ -1,6 +1,5 @@
 import { IS_UNDEFINED, notUndefined, optional } from '../Undefined'
 import { Validated } from '../Validated'
-import { str } from '../String'
 import { positive, NOT_POSITIVE } from '../Number'
 
 describe('Undefined', () => {
