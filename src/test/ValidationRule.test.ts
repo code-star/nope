@@ -127,6 +127,40 @@ describe('ValidationRule', () => {
     })
   })
 
+  describe('orElse', () => {
+    it('should return the original value if the original value is valid, even if the alternative is invalid', () => {
+      const original: ValidationRule<number, boolean, string> = ValidationRule.create(n => Validated.ok(`Number ${n}`))
+      const alternative: ValidationRule<number, number, boolean> = ValidationRule.create(n => Validated.error(n))
+      const toVerify: Validated<number, boolean | string> = original.orElse(alternative).apply(4)
+      const expected: Validated<number, boolean | string> = Validated.ok('Number 4')
+      expect(toVerify).toEqual(expected)
+    })
+
+    it('should return the original value if the original value is valid, even if the alternative is valid', () => {
+      const original: ValidationRule<number, boolean, string> = ValidationRule.create(n => Validated.ok(`Number ${n}`))
+      const alternative: ValidationRule<number, number, boolean> = ValidationRule.create(n => Validated.ok(n >= 0))
+      const toVerify: Validated<number, boolean | string> = original.orElse(alternative).apply(4)
+      const expected: Validated<number, boolean | string> = Validated.ok('Number 4')
+      expect(toVerify).toEqual(expected)
+    })
+
+    it('should return the alternative error if both the original value and the altnerative are invalid', () => {
+      const original: ValidationRule<number, boolean, string> = ValidationRule.create(n => Validated.error(n >= 0))
+      const alternative: ValidationRule<number, number, boolean> = ValidationRule.create(n => Validated.error(n))
+      const toVerify: Validated<number, boolean | string> = original.orElse(alternative).apply(4)
+      const expected: Validated<number, boolean | string> = Validated.error(4)
+      expect(toVerify).toEqual(expected)
+    })
+
+    it('should return the alternative value if the original value is invalid but the alternative is not', () => {
+      const original: ValidationRule<number, boolean, string> = ValidationRule.create(n => Validated.error(n >= 0))
+      const alternative: ValidationRule<number, number, boolean> = ValidationRule.create(n => Validated.ok(n >= 0))
+      const toVerify: Validated<number, boolean | string> = original.orElse(alternative).apply(4)
+      const expected: Validated<number, boolean | string> = Validated.ok(true)
+      expect(toVerify).toEqual(expected)
+    })
+  })
+
   describe('combine', () => {
     it('should return a valid object if all values are valid', () => {
       type ToCombine = Readonly<{

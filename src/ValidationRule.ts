@@ -82,6 +82,10 @@ export class ValidationRule<P, E, A> {
     return new ValidationRule<P, never, A | B>(p => this.apply(p).recover(f))
   }
 
+  public orElse<Q, F, B>(alternative: ValidationRule<P, F, B>): ValidationRule<P & Q, F, A | B> {
+    return new ValidationRule<P & Q, F, A | B>(p => this.apply(p).orElse(alternative.apply(p)))
+  }
+
   public positive<P, E>(this: ValidationRule<P, E, number>): ValidationRule<P, E | typeof NOT_POSITIVE, number> {
     return this.composeWith(positive())
   }

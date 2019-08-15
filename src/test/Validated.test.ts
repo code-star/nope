@@ -124,6 +124,40 @@ describe('Validated', () => {
     })
   })
 
+  describe('orElse', () => {
+    it('should return the original value if the original value is valid, even if the alternative is invalid', () => {
+      const original: Validated<number, boolean> = Validated.ok(true)
+      const alternative: Validated<boolean, string> = Validated.error(false)
+      const toVerify: Validated<boolean, boolean | string> = original.orElse(alternative)
+      const expected: Validated<boolean, boolean | string> = Validated.ok(true)
+      expect(toVerify).toEqual(expected)
+    })
+
+    it('should return the original value if the original value is valid, even if the alternative is valid', () => {
+      const original: Validated<number, boolean> = Validated.ok(true)
+      const alternative: Validated<boolean, string> = Validated.ok('Woah')
+      const toVerify: Validated<boolean, boolean | string> = original.orElse(alternative)
+      const expected: Validated<boolean, boolean | string> = Validated.ok(true)
+      expect(toVerify).toEqual(expected)
+    })
+
+    it('should return the alternative error if both the original value and the altnerative are invalid', () => {
+      const original: Validated<number, boolean> = Validated.error(4)
+      const alternative: Validated<boolean, string> = Validated.error(false)
+      const toVerify: Validated<boolean, boolean | string> = original.orElse(alternative)
+      const expected: Validated<boolean, boolean | string> = Validated.error(false)
+      expect(toVerify).toEqual(expected)
+    })
+
+    it('should return the alternative value if the original value is invalid but the alternative is not', () => {
+      const original: Validated<number, boolean> = Validated.error(4)
+      const alternative: Validated<boolean, string> = Validated.ok('Yeah')
+      const toVerify: Validated<boolean, boolean | string> = original.orElse(alternative)
+      const expected: Validated<boolean, boolean | string> = Validated.ok('Yeah')
+      expect(toVerify).toEqual(expected)
+    })
+  })
+
   describe('isValid', () => {
     it('should return true if the value is valid', () => {
       const valid: Validated<string, number> = Validated.ok(3)

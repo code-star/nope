@@ -1,5 +1,5 @@
 import { keys } from './Objects'
-import { identity } from './util'
+import { identity, always } from './util'
 
 const ValidTypeTag = 'valid'
 const InvalidTypeTag = 'invalid'
@@ -33,6 +33,10 @@ export abstract class Validated<E, A> {
 
   recover<B>(f: (error: E) => B): Validated<never, A | B> {
     return Validated.ok(this.fold<A | B>(identity, f))
+  }
+
+  orElse<F, B>(alternative: Validated<F, B>): Validated<F, A | B> {
+    return this.fold<Validated<F, A | B>>(Validated.ok, always(alternative))
   }
 
   abstract isValid(): this is Valid<A>
