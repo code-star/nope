@@ -109,21 +109,21 @@ describe('Validated', () => {
   describe('recover', () => {
     const SOME_ERROR: 'SOME_ERROR' = 'SOME_ERROR'
 
-    function toValidString(e: typeof SOME_ERROR): Valid<never, string> {
+    function toValidString(e: typeof SOME_ERROR): Valid<string> {
       return Validated.ok(`Now valid ${e}`)
     }
 
     it('should return the original value if the original value is valid', () => {
       const valid: Validated<typeof SOME_ERROR, number> = Validated.ok(3)
-      const toVerify: Valid<never, number | string> = valid.recover(toValidString)
-      const expected: Valid<never, number | string> = Validated.ok(3)
+      const toVerify: Valid<number | string> = valid.recover(toValidString)
+      const expected: Valid<number | string> = Validated.ok(3)
       expect(toVerify).toEqual(expected)
     })
 
     it('should return the recovered value if the original value is invalid', () => {
       const invalid: Validated<typeof SOME_ERROR, number> = Validated.error(SOME_ERROR)
-      const toVerify: Valid<never, number | string> = invalid.recover(toValidString)
-      const expected: Valid<never, number | string> = Validated.ok('Now valid SOME_ERROR')
+      const toVerify: Valid<number | string> = invalid.recover(toValidString)
+      const expected: Valid<number | string> = Validated.ok('Now valid SOME_ERROR')
       expect(toVerify).toEqual(expected)
     })
   })
