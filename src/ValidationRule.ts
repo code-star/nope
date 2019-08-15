@@ -97,6 +97,16 @@ export class ValidationRule<P, E, A> {
   public required(): ValidationRule<P | undefined, E | typeof IS_UNDEFINED, A> {
     return notUndefined<P>().composeWith(this)
   }
+
+  public optional(): ValidationRule<P | undefined, E, A | undefined> {
+    return ValidationRule.create(p => {
+      if (p === undefined) {
+        return Validated.ok(undefined)
+      } else {
+        return this.apply(p)
+      }
+    })
+  }
 }
 
 type ParameterOfValidationRule<V> = V extends ValidationRule<infer P, any, any> ? P : never
