@@ -1,6 +1,9 @@
 import { keys } from './Objects'
 import { Validated, CombinedValidated, ValueOfValidated, ErrorOfValidated } from './Validated'
-import { notUndefined, IS_UNDEFINED } from './Generic'
+import { positive, NOT_POSITIVE } from './Number'
+import { EMPTY_STRING, notEmptyString } from './String'
+import { many } from './Array'
+import { notUndefined, IS_UNDEFINED } from './Undefined'
 
 export class ValidationRule<P, E, A> {
   static compose<E, F, A, B, C>(left: ValidationRule<A, E, B>, right: ValidationRule<B, F, C>): ValidationRule<A, E | F, C> {
@@ -10,6 +13,26 @@ export class ValidationRule<P, E, A> {
       }
     )
   }
+
+  // static sequence<C extends Array<ValidationRule<any, any, any>>>(
+  //   ...c: C
+  // ): ValidationRule<ParameterOfValidationRuleTuple<C>, ErrorOfValidationRuleTuple<C>, ValueOfValidationRuleTuple<C>> {
+  //   return createValidationRule((ps: ParameterOfValidationRuleTuple<C>) => {
+  //     const acc: Array<Validated<ErrorOfValidationRuleTuple<C>, ValueOfValidationRuleTuple<C>>> = []
+  //     ps.forEach((p, index) => {
+  //       const validationRule = c[index]
+  //       acc[index] = validationRule(p)
+  //     })
+  //     return null as any
+  //   })
+  // }
+
+  // static all<P, E, A>(validationRule: ValidationRule<P, E, A>): ValidationRule<P[], E, A[]> {
+  //   return createValidationRule((arr: P[]) => {
+  //     const validateds = arr.map(validationRule)
+  //     return null as any
+  //   })
+  // }
 
   static combine<O extends { [k: string]: ValidationRule<any, any, any> }>(
     o: O
@@ -64,6 +87,14 @@ export class ValidationRule<P, E, A> {
     return new ValidationRule<P & Q, F, A | B>(p => this.apply(p).orElse(alternative.apply(p)))
   }
 
+  public positive<P, E>(this: ValidationRule<P, E, number>): ValidationRule<P, E | typeof NOT_POSITIVE, number> {
+    return this.composeWith(positive())
+  }
+
+  public notEmptyString<P, E>(this: ValidationRule<P, E, string>): ValidationRule<P, E | typeof EMPTY_STRING, string> {
+    return this.composeWith(notEmptyString())
+  }
+
   public required(): ValidationRule<P | undefined, E | typeof IS_UNDEFINED, A> {
     return notUndefined<P>().composeWith(this)
   }
@@ -76,6 +107,14 @@ export class ValidationRule<P, E, A> {
         return this.apply(p)
       }
     })
+  }
+
+  public many(): ValidationRule<P[], Partial<E[]>, A[]> {
+    return many(this)
+  }
+
+  public of<F, B, C>(this: ValidationRule<P, E, B[]>, validationRule: ValidationRule<B, F, C>): ValidationRule<P, E | Partial<F[]>, C[]> {
+    return this.composeWith(many(validationRule))
   }
 }
 

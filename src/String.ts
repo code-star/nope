@@ -1,7 +1,7 @@
 import { ValidationRule } from './ValidationRule'
 import { Validated } from './Validated'
 
-export function string(): ValidationRule<string, never, string> {
+export function str(): ValidationRule<string, never, string> {
   return new ValidationRule(Validated.ok)
 }
 
