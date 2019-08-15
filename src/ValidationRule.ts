@@ -46,7 +46,19 @@ export class ValidationRule<P, E, A> {
     )
   }
 
+  static create<P, E, A>(apply: (p: P) => Validated<E, A>): ValidationRule<P, E, A> {
+    return new ValidationRule(apply)
+  }
+
   constructor(public readonly apply: (p: P) => Validated<E, A>) {}
+
+  public map<B>(fn: (a: A) => B): ValidationRule<P, E, B> {
+    return new ValidationRule<P, E, B>(p => this.apply(p).map(fn))
+  }
+
+  public mapError<EE>(fn: (e: E) => EE): ValidationRule<P, EE, A> {
+    return new ValidationRule<P, EE, A>(p => this.apply(p).mapError(fn))
+  }
 
   public composeWith<EE, C>(other: ValidationRule<A, EE, C>): ValidationRule<P, E | EE, C> {
     return ValidationRule.compose(
