@@ -2,7 +2,7 @@ import { ValidationRule } from './ValidationRule'
 import { Validated } from './Validated'
 
 export function number(): ValidationRule<number, never, number> {
-  return new ValidationRule(Validated.ok)
+  return new ValidationRule<number, never, number>(Validated.ok)
 }
 
 export const NOT_POSITIVE: 'NOT_POSITIVE' = 'NOT_POSITIVE'

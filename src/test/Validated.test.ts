@@ -104,6 +104,44 @@ describe('Validated', () => {
     })
   })
 
+  describe('test', () => {
+    function isEven(n: number): Validated<string> {
+      return n % 2 === 0 ? Validated.ok() : Validated.error(`${n} is not even`)
+    }
+
+    function isPositive(n: number): Validated<boolean> {
+      return n > 0 ? Validated.ok() : Validated.error(false)
+    }
+
+    it('should return the original value if the original value is valid if the predicates return true', () => {
+      const valid: Validated<number, number> = Validated.ok(2)
+      const toVerify: Validated<number | Array<boolean | string>, number> = valid.test<string | boolean>(isEven, isPositive)
+      const expected: Validated<number | Array<boolean | string>, number> = Validated.ok(2)
+      expect(toVerify).toEqual(expected)
+    })
+
+    it('should return the original error if the original value is invalid', () => {
+      const valid: Validated<number, number> = Validated.error(2)
+      const toVerify: Validated<number | Array<boolean | string>, number> = valid.test<string | boolean>(isEven, isPositive)
+      const expected: Validated<number | Array<boolean | string>, number> = Validated.error(2)
+      expect(toVerify).toEqual(expected)
+    })
+
+    it('should return the newly supplied error if the original value is valid but one of the the predicates returns false', () => {
+      const valid: Validated<number, number> = Validated.ok(3)
+      const toVerify: Validated<number | Array<boolean | string>, number> = valid.test<string | boolean>(isEven, isPositive)
+      const expected: Validated<number | Array<boolean | string>, number> = Validated.error(['3 is not even'])
+      expect(toVerify).toEqual(expected)
+    })
+
+    it('should return multiple newly supplied errors if the original value is valid but many of the the predicates return false', () => {
+      const valid: Validated<number, number> = Validated.ok(-3)
+      const toVerify: Validated<number | Array<boolean | string>, number> = valid.test<string | boolean>(isEven, isPositive)
+      const expected: Validated<number | Array<boolean | string>, number> = Validated.error(['-3 is not even', false])
+      expect(toVerify).toEqual(expected)
+    })
+  })
+
   describe('recover', () => {
     function toValidString(n: number): string {
       return `Now valid ${n}`

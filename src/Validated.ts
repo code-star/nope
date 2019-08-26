@@ -1,5 +1,6 @@
 import { keys } from './Objects'
 import { identity, always } from './util'
+import { Predicate } from './Predicate'
 
 const ValidTypeTag = 'valid'
 const InvalidTypeTag = 'invalid'
@@ -14,7 +15,7 @@ type ObjectToCombine = {
 }
 export type CombinedValidated<O> = Validated<ErrorOfCombinedValidated<O>, ValueOfCombinedValidated<O>>
 
-export abstract class Validated<E, A> {
+export abstract class Validated<E, A = []> {
   map<B>(f: (a: A) => B): Validated<E, B> {
     return this.fold<Validated<E, B>>(v => Validated.ok(f(v)), Validated.error)
   }
@@ -29,6 +30,27 @@ export abstract class Validated<E, A> {
 
   filter<F>(pred: (a: A) => boolean, toError: (error: A) => F): Validated<E | F, A> {
     return this.fold<Validated<F | E, A>>(a => (pred(a) ? Validated.ok(a) : Validated.error(toError(a))), Validated.error)
+  }
+
+  test<F>(...predicates: Array<Predicate<A, F>>): Validated<E | F[], A> {
+    const self = this
+    if (self.isValid()) {
+      const errors: F[] = []
+      predicates.forEach(predicate => {
+        const validated = predicate(self.value)
+        if (validated.isInvalid()) {
+          errors.push(validated.error)
+        }
+      })
+
+      if (errors.length > 0) {
+        return Validated.error(errors)
+      } else {
+        return self
+      }
+    } else {
+      return self
+    }
   }
 
   recover<B>(f: (error: E) => B): Validated<never, A | B> {
@@ -47,9 +69,12 @@ export abstract class Validated<E, A> {
 
   abstract fold<B>(ok: (a: A) => B, error: (error: E) => B): B
 
-  static ok<A>(value: A): Valid<A> {
+  static ok(): Valid<[]>
+  static ok<A>(value: A): Valid<A>
+  static ok<A>(value?: A): Valid<A | undefined> {
     return new Valid(value)
   }
+
   static error<E>(error: E): Invalid<E> {
     return new Invalid(error)
   }

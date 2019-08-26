@@ -4,6 +4,7 @@ import { positive, NOT_POSITIVE } from './Number'
 import { EMPTY_STRING, notEmptyString } from './String'
 import { many } from './Array'
 import { notUndefined, IS_UNDEFINED } from './Undefined'
+import { Predicate } from './Predicate'
 
 export class ValidationRule<P, E, A> {
   static compose<E, F, A, B, C>(left: ValidationRule<A, E, B>, right: ValidationRule<B, F, C>): ValidationRule<A, E | F, C> {
@@ -115,6 +116,12 @@ export class ValidationRule<P, E, A> {
 
   public of<F, B, C>(this: ValidationRule<P, E, B[]>, validationRule: ValidationRule<B, F, C>): ValidationRule<P, E | Partial<F[]>, C[]> {
     return this.composeWith(many(validationRule))
+  }
+
+  public test<F>(...predicates: Array<Predicate<A, F>>): ValidationRule<P, E | F[], A> {
+    return ValidationRule.create<P, E | F[], A>(p => {
+      return this.apply(p).test(...predicates)
+    })
   }
 }
 

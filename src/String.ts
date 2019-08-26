@@ -2,7 +2,7 @@ import { ValidationRule } from './ValidationRule'
 import { Validated } from './Validated'
 
 export function str(): ValidationRule<string, never, string> {
-  return new ValidationRule(Validated.ok)
+  return new ValidationRule<string, never, string>(Validated.ok)
 }
 
 export const EMPTY_STRING: 'EMPTY_STRING' = 'EMPTY_STRING'

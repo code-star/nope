@@ -2,7 +2,7 @@ import { ValidationRule } from './ValidationRule'
 import { Validated } from './Validated'
 
 export function array<A>(): ValidationRule<A[], never, A[]> {
-  return ValidationRule.create(Validated.ok)
+  return ValidationRule.create<A[], never, A[]>(Validated.ok)
 }
 
 export function many<P, E, A>(validationRule: ValidationRule<P, E, A>): ValidationRule<P[], Partial<E[]>, A[]> {
