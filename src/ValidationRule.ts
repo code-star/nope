@@ -1,7 +1,6 @@
 import { keys } from './Objects'
 import { Validated, CombinedValidated, ValueOfValidated, ErrorOfValidated } from './Validated'
 import { positive, NOT_POSITIVE } from './Number'
-import { EMPTY_STRING, notEmptyString } from './String'
 import { many } from './Array'
 import { notUndefined, IS_UNDEFINED, optional } from './Undefined'
 import { Predicate } from './Predicate'
@@ -92,10 +91,6 @@ export class ValidationRule<P, E, A, M extends any[] = []> {
 
   public positive<P, E>(this: ValidationRule<P, E, number>): ValidationRule<P, E | typeof NOT_POSITIVE, number> {
     return this.composeWith(positive())
-  }
-
-  public notEmptyString<P, E>(this: ValidationRule<P, E, string>): ValidationRule<P, E | typeof EMPTY_STRING, string> {
-    return this.composeWith(notEmptyString())
   }
 
   public lmap<MM extends any[]>(fn: (mm: MM) => M): ValidationRule<P, E, A, MM> {
