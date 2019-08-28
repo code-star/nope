@@ -1,6 +1,5 @@
 import { keys } from './Objects'
 import { Validated, CombinedValidated, ValueOfValidated, ErrorOfValidated } from './Validated'
-import { positive, NOT_POSITIVE } from './Number'
 import { many } from './Array'
 import { notUndefined, IS_UNDEFINED, optional } from './Undefined'
 import { Predicate } from './Predicate'
@@ -87,10 +86,6 @@ export class ValidationRule<P, E, A, M extends any[] = []> {
 
   public orElse<Q, F, B>(alternative: ValidationRule<P, F, B, M>): ValidationRule<P & Q, F, A | B, M> {
     return new ValidationRule<P & Q, F, A | B, M>((p, ...meta) => this.apply(p, ...meta).orElse(alternative.apply(p, ...meta)))
-  }
-
-  public positive<P, E>(this: ValidationRule<P, E, number>): ValidationRule<P, E | typeof NOT_POSITIVE, number> {
-    return this.composeWith(positive())
   }
 
   public lmap<MM extends any[]>(fn: (mm: MM) => M): ValidationRule<P, E, A, MM> {
