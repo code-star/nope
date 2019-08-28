@@ -5,9 +5,9 @@ export function array<A>(): ValidationRule<A[], never, A[]> {
   return ValidationRule.create<A[], never, A[]>(Validated.ok)
 }
 
-export function many<P, E, A>(validationRule: ValidationRule<P, E, A>): ValidationRule<P[], Partial<E[]>, A[]> {
-  return ValidationRule.create<P[], Partial<E[]>, A[]>((ps: P[]) => {
-    const validatedAs: Array<Validated<E, A>> = ps.map(p => validationRule.apply(p))
+export function many<P, E, A, M extends any[]>(validationRule: ValidationRule<P, E, A, M>): ValidationRule<P[], Partial<E[]>, A[], M> {
+  return ValidationRule.create<P[], Partial<E[]>, A[], M>((ps: P[], ...meta: M) => {
+    const validatedAs: Array<Validated<E, A>> = ps.map(p => validationRule.apply(p, ...meta))
     return Validated.sequence(validatedAs)
   })
 }

@@ -74,6 +74,14 @@ describe('ValidationRule', () => {
       const expected: Validated<boolean | string, number> = Validated.ok(44)
       expect(toVerify).toEqual(expected)
     })
+
+    it('should give both validation rules access to the same meta-data', () => {
+      const left = ValidationRule.create<boolean, string, number, [number, string]>((p, n, _s) => Validated.ok((p ? -1 : +1) * n))
+      const right = ValidationRule.create<number, string, string, [number, string]>((p, _n, s) => Validated.ok(p + ' ' + s))
+      const toVerify: Validated<string, string> = left.composeWith(right).apply(true, 4, 'dash')
+      const expected: Validated<string, string> = Validated.ok('-4 dash')
+      expect(toVerify).toEqual(expected)
+    })
   })
 
   describe('filter', () => {

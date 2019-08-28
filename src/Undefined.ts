@@ -7,12 +7,12 @@ export function notUndefined<P>(): ValidationRule<P | undefined, typeof IS_UNDEF
   return ValidationRule.create(p => (p === undefined ? Validated.error(IS_UNDEFINED) : Validated.ok(p)))
 }
 
-export function optional<P, E, A>(validationRule: ValidationRule<P, E, A>): ValidationRule<P | undefined, E, A | undefined> {
-  return ValidationRule.create<P | undefined, E, A | undefined>(p => {
+export function optional<P, E, A, M extends any[]>(validationRule: ValidationRule<P, E, A, M>): ValidationRule<P | undefined, E, A | undefined, M> {
+  return ValidationRule.create<P | undefined, E, A | undefined, M>((p, ...meta) => {
     if (p === undefined) {
       return Validated.ok(undefined)
     } else {
-      return validationRule.apply(p)
+      return validationRule.apply(p, ...meta)
     }
   })
 }
