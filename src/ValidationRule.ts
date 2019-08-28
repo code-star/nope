@@ -1,7 +1,7 @@
 import { keys } from './Objects'
 import { Validated, CombinedValidated, ValueOfValidated, ErrorOfValidated } from './Validated'
 import { Arrays } from './Arrays'
-import { notUndefined, IS_UNDEFINED, optional } from './Undefined'
+import { Undefineds, IsUndefined } from './Undefineds'
 import { Predicate } from './Predicate'
 
 export class ValidationRule<P, E, A, M extends any[] = []> {
@@ -96,14 +96,14 @@ export class ValidationRule<P, E, A, M extends any[] = []> {
     return new ValidationRule<P, E, A, MM>((p, ...meta) => this.apply(p, ...meta))
   }
 
-  public required(): ValidationRule<P | undefined, E | typeof IS_UNDEFINED, A, M> {
-    return notUndefined<P>()
+  public required(): ValidationRule<P | undefined, E | IsUndefined, A, M> {
+    return Undefineds.notUndefined<P>()
       .lmap<M>(() => [])
       .composeWith(this)
   }
 
   public optional(): ValidationRule<P | undefined, E, A | undefined, M> {
-    return optional(this)
+    return Undefineds.optional(this)
   }
 
   public many(): ValidationRule<P[], Partial<E[]>, A[], M> {
