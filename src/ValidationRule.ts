@@ -1,6 +1,6 @@
 import { keys } from './Objects'
 import { Validated, CombinedValidated, ValueOfValidated, ErrorOfValidated } from './Validated'
-import { many } from './Array'
+import { Arrays } from './Arrays'
 import { notUndefined, IS_UNDEFINED, optional } from './Undefined'
 import { Predicate } from './Predicate'
 
@@ -107,11 +107,11 @@ export class ValidationRule<P, E, A, M extends any[] = []> {
   }
 
   public many(): ValidationRule<P[], Partial<E[]>, A[], M> {
-    return many(this)
+    return Arrays.many(this)
   }
 
   public of<F, B, C>(this: ValidationRule<P, E, B[]>, validationRule: ValidationRule<B, F, C>): ValidationRule<P, E | Partial<F[]>, C[]> {
-    return this.composeWith(many(validationRule))
+    return this.composeWith(Arrays.many(validationRule))
   }
 
   public test<F>(...predicates: Array<Predicate<A, F>>): ValidationRule<P, E | F[], A, M> {
