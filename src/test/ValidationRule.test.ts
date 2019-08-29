@@ -282,9 +282,71 @@ describe('ValidationRule', () => {
       })
       expect(toVerify).toEqual(expected)
     })
+
+    it('should allow each validation rule to have meta-data', () => {
+      type ToCombine = Readonly<{
+        koala: ValidationRule<string, boolean, number, [number]>
+        tiger: ValidationRule<number, string, number, [number]>
+        duck: ValidationRule<boolean, number, number, [number]>
+      }>
+      const alwaysAllValid: ToCombine = {
+        koala: ValidationRule.create<string, boolean, number, [number]>((s, i) => Validated.ok(s.length + i)),
+        tiger: ValidationRule.create<number, string, number, [number]>((n, i) => Validated.ok(n * i)),
+        duck: ValidationRule.create<boolean, number, number, [number]>((b, i) => Validated.ok(b ? -i : +i))
+      }
+
+      const toVerify = ValidationRule.combine<ToCombine>(alwaysAllValid).apply(
+        {
+          koala: 'Munch',
+          tiger: 4,
+          duck: true
+        },
+        3
+      )
+      const expected = Validated.ok({
+        koala: 8,
+        tiger: 12,
+        duck: -3
+      })
+      expect(toVerify).toEqual(expected)
+    })
   })
 
   describe('test', () => {
-    it('should return the original error if the original value is invalid', () => {})
+    function isEven(n: number): Validated<string> {
+      return n % 2 === 0 ? Validated.ok() : Validated.error(`${n} is not even`)
+    }
+
+    function isPositive(n: number): Validated<boolean> {
+      return n > 0 ? Validated.ok() : Validated.error(false)
+    }
+
+    it('should return the original value if the original value is valid if the predicates return true', () => {
+      const alwaysValid: ValidationRule<number, number> = ValidationRule.create<number, number>(Validated.ok)
+      const toVerify: Validated<number | Array<boolean | string>, number> = alwaysValid.test<string | boolean>(isEven, isPositive).apply(2)
+      const expected: Validated<number | Array<boolean | string>, number> = Validated.ok(2)
+      expect(toVerify).toEqual(expected)
+    })
+
+    it('should return the original error if the original value is invalid', () => {
+      const alwaysInvalid: ValidationRule<number, number> = ValidationRule.create<number, number>(Validated.error)
+      const toVerify: Validated<number | Array<boolean | string>, number> = alwaysInvalid.test<string | boolean>(isEven, isPositive).apply(2)
+      const expected: Validated<number | Array<boolean | string>, number> = Validated.error(2)
+      expect(toVerify).toEqual(expected)
+    })
+
+    it('should return the newly supplied error if the original value is valid but one of the the predicates returns false', () => {
+      const alwaysValid: ValidationRule<number, number> = ValidationRule.create<number, number>(Validated.ok)
+      const toVerify: Validated<number | Array<boolean | string>, number> = alwaysValid.test<string | boolean>(isEven, isPositive).apply(3)
+      const expected: Validated<number | Array<boolean | string>, number> = Validated.error(['3 is not even'])
+      expect(toVerify).toEqual(expected)
+    })
+
+    it('should return multiple newly supplied errors if the original value is valid but many of the the predicates return false', () => {
+      const alwaysValid: ValidationRule<number, number> = ValidationRule.create<number, number>(Validated.ok)
+      const toVerify: Validated<number | Array<boolean | string>, number> = alwaysValid.test<string | boolean>(isEven, isPositive).apply(-3)
+      const expected: Validated<number | Array<boolean | string>, number> = Validated.error(['-3 is not even', false])
+      expect(toVerify).toEqual(expected)
+    })
   })
 })
