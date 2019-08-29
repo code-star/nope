@@ -115,6 +115,8 @@ if (validated.isValid()) {
 
 ## API
 
+Note that this documentation is not yet complete. Explore the API to learn more about what is possible. Help making the documentation complete is very welcome.
+
 - [API](#API)
   - `ValidationRule`
     - [`ValidationRule.combine`](#validationrulecombine)
@@ -169,13 +171,13 @@ will produce either a `NotANumber` error or a `NotPositive` error when it fails.
 
 #### `ValidationRule.many`
 
-From a `ValidationRule` for a type `A`, creates a `ValidationRule` for a type `A[]`.
+From a `ValidationRule` for a type `A`, creates a `ValidationRule` for type `A[]`.
 
 ```typescript
 const areAllPositive = Numbers.positive().many()
 ```
 
-Using this validation rule results in a valid `Array<number>` when all input values are positive, or an error of shape `Array<NotPositive | undefined>`. The error `Array` will only have values at the indices where negative numbers are located.
+Using this validation rule results in a valid `Array<number>` when all input values are positive, or an error of shape `Array<NotPositive | undefined>`. The error `Array` will only have values at the indices where the negative numbers are located.
 
 #### ValidationRule.test
 
