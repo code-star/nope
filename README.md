@@ -80,7 +80,7 @@ This validation rule takes a `string` and tries to parse it as a `number`. If it
 * An error stating that the `string` does not contain a number. For example: `'Dog is not a number'`
 * An error stating that the `number` is negative. For example: `'-123.4 is negative`
 
-There are many ways to combine simple validation rules into more complex validation rules. Take a look at the documentation for `combine`, `test` or `many` for example.
+There are many ways to combine simple validation rules into more complex validation rules. Take a look at the documentation for [`combine`](#validationrulecombine), `test` or [`many`](#validationrulemany) for example.
 
 ### Meta data
 
@@ -116,6 +116,7 @@ if (validated.isValid()) {
   - `ValidationRule`
     - [`ValidationRule.combine`](#validationrulecombine)
     - [`ValidationRule.composeWith`](#validationrulecomposewith)
+    - [`ValidationRule.many`](#validationrulemany)
   - `Numbers`
     - [`Numbers.fromNumber`](#numbersfromnumber)
     - [`Numbers.fromUnknown`](#numbersfromunknown)
@@ -161,6 +162,16 @@ Numbers.fromUnknown().composeWith(Numbers.positive())
 ```
 
 will produce either a `NotANumber` error or a `NotPositive` error when it fails.
+
+#### `ValidationRule.many`
+
+From a `ValidationRule` for a type `A`, creates a `ValidationRule` for a type `A[]`.
+
+```typescript
+const areAllPositive = Numbers.positive().many()
+```
+
+Using this validation rule results in a valid `Array<number>` when all input values are positive, or an error of shape `Array<NotPositive | undefined>`. The error `Array` will only have values at the indices where negative numbers are located.
 
 #### `Numbers.fromNumber`
 
