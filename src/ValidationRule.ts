@@ -103,10 +103,13 @@ export class ValidationRule<P, E, A = P, M extends any[] = []> {
     return this.composeWith(Arrays.many(validationRule))
   }
 
-  public test<F>(...predicates: Array<Predicate<A, F>>): ValidationRule<P, E | F[], A, M> {
-    return ValidationRule.create<P, E | F[], A, M>((p, ...meta: M) => {
-      return this.apply(p, ...meta).test(...predicates)
-    })
+  public test<F>(...predicates: Array<Predicate<A, F, M>>): ValidationRule<P, E | F[], A, M> {
+    return ValidationRule.create<P, E | F[], A, M>(
+      (p, ...meta: M): Validated<E | F[], A> => {
+        const withMeta: Array<Predicate<A, F>> = predicates.map(predicate => (a: A) => predicate(a, ...meta))
+        return this.apply(p, ...meta).test<F>(...withMeta)
+      }
+    )
   }
 }
 

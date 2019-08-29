@@ -1,7 +1,7 @@
 {
-  "name": "nope",
-  "version": "1.0.0",
-  "description": "Applicative validation",
+  "name": "codestar-nope",
+  "version": "0.0.1",
+  "description": "Type-safe validation library for Typescript",
   "main": "index.js",
   "scripts": {
     "compile-test": "npm run clean && tsc -p . --p tsconfig.test.json",
@@ -17,7 +17,7 @@
     "url": "git+https://github.com/code-star/nope.git"
   },
   "keywords": [
-    "applicative",
+    "typescript",
     "validation"
   ],
   "author": "Codestar",
@@ -27,9 +27,9 @@
   },
   "homepage": "https://github.com/code-star/nope#readme",
   "devDependencies": {
-    "@types/jest": "^24.0.16",
-    "@types/node": "^12.6.9",
-    "jest": "^24.8.0",
-    "typescript": "^3.5.3"
+    "@types/jest": "24.0.16",
+    "@types/node": "12.6.9",
+    "jest": "24.8.0",
+    "typescript": "3.5.3"
   }
 }

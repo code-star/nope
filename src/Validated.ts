@@ -5,9 +5,9 @@ import { Predicate } from './Predicate'
 const ValidTypeTag = 'valid'
 const InvalidTypeTag = 'invalid'
 
-export type ErrorOfValidated<V> = V extends Validated<infer E, any> ? E : never
+export type ErrorOfValidated<V> = V extends Invalid<infer E, any> ? E : never
 type ErrorOfCombinedValidated<O> = Partial<{ [K in keyof O]: ErrorOfValidated<O[K]> }>
-export type ValueOfValidated<V> = V extends Validated<any, infer A> ? A : never
+export type ValueOfValidated<V> = V extends Valid<any, infer A> ? A : never
 type ValueOfCombinedValidated<O> = { [K in keyof O]: ValueOfValidated<O[K]> }
 
 type ObjectToCombine = {
@@ -15,7 +15,9 @@ type ObjectToCombine = {
 }
 export type CombinedValidated<O> = Validated<ErrorOfCombinedValidated<O>, ValueOfCombinedValidated<O>>
 
-export abstract class Validated<E, A = []> {
+export type Validated<E, A = []> = Invalid<E, A> | Valid<E, A>
+
+export abstract class AbstractValidated<E, A = []> {
   map<B>(f: (a: A) => B): Validated<E, B> {
     return this.fold<Validated<E, B>>(v => Validated.ok(f(v)), Validated.error)
   }
@@ -33,11 +35,10 @@ export abstract class Validated<E, A = []> {
   }
 
   test<F>(...predicates: Array<Predicate<A, F>>): Validated<E | F[], A> {
-    const self = this
-    if (self.isValid()) {
+    return this.fold<Validated<E | F[], A>>((a: A): Validated<E | F[], A> => {
       const errors: F[] = []
       predicates.forEach(predicate => {
-        const validated = predicate(self.value)
+        const validated = predicate(a)
         if (validated.isInvalid()) {
           errors.push(validated.error)
         }
@@ -46,11 +47,9 @@ export abstract class Validated<E, A = []> {
       if (errors.length > 0) {
         return Validated.error(errors)
       } else {
-        return self
+        return Validated.ok(a)
       }
-    } else {
-      return self
-    }
+    }, Validated.error)
   }
 
   recover<B>(f: (error: E) => B): Validated<never, A | B> {
@@ -61,25 +60,30 @@ export abstract class Validated<E, A = []> {
     return this.fold<Validated<F, A | B>>(Validated.ok, always(alternative))
   }
 
-  abstract isValid(): this is Valid<A>
+  abstract isValid(): this is Valid<E, A>
 
-  isInvalid(): this is Invalid<E> {
+  isInvalid(): this is Invalid<E, A> {
     return !this.isValid()
   }
 
   abstract fold<B>(ok: (a: A) => B, error: (error: E) => B): B
+}
 
-  static ok(): Valid<[]>
-  static ok<A>(value: A): Valid<A>
-  static ok<A>(value?: A): Valid<A | undefined> {
-    return new Valid(value)
-  }
+// Defined separately, to be able to create an overloaded function:
+function ok(): Valid<never, []>
+function ok<A>(value: A): Valid<never, A>
+function ok<A>(value?: A): Valid<never, A | undefined> {
+  return new Valid(value)
+}
 
-  static error<E>(error: E): Invalid<E> {
+export const Validated = {
+  ok,
+
+  error<E>(error: E): Invalid<E, never> {
     return new Invalid(error)
-  }
+  },
 
-  static sequence<E, A>(validateds: Array<Validated<E, A>>): Validated<Partial<Array<E>>, A[]> {
+  sequence<E, A>(validateds: Array<Validated<E, A>>): Validated<Partial<Array<E>>, A[]> {
     let hasErrors = false
     const errors: Partial<Array<E>> = []
     const values: A[] = []
@@ -98,9 +102,9 @@ export abstract class Validated<E, A = []> {
     } else {
       return Validated.ok(values)
     }
-  }
+  },
 
-  static combine<O extends ObjectToCombine>(o: O): CombinedValidated<O> {
+  combine<O extends ObjectToCombine>(o: O): CombinedValidated<O> {
     let hasErrors = false
     const errors: ErrorOfCombinedValidated<O> = {}
     const values: Partial<ValueOfCombinedValidated<O>> = {}
@@ -122,7 +126,7 @@ export abstract class Validated<E, A = []> {
   }
 }
 
-export class Valid<A> extends Validated<never, A> {
+export class Valid<E, A> extends AbstractValidated<E, A> {
   static readonly type = ValidTypeTag
 
   constructor(readonly value: A) {
@@ -133,23 +137,23 @@ export class Valid<A> extends Validated<never, A> {
     return ok(this.value)
   }
 
-  isValid(): this is Valid<A> {
+  isValid(): this is Valid<E, A> {
     return true
   }
 }
 
-export class Invalid<E> extends Validated<E, never> {
+export class Invalid<E, A> extends AbstractValidated<E, A> {
   static readonly type = InvalidTypeTag
 
   constructor(readonly error: E) {
     super()
   }
 
-  fold<B>(_ok: (a: never) => B, error: (error: E) => B): B {
+  fold<B>(_ok: (a: A) => B, error: (error: E) => B): B {
     return error(this.error)
   }
 
-  isValid(): this is Valid<never> {
+  isValid(): this is Valid<E, A> {
     return false
   }
 }
