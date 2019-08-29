@@ -1,9 +1,10 @@
 import { keys } from './Objects'
 import { identity, always } from './util'
-import { Predicate } from './Predicate'
 
 const ValidTypeTag = 'valid'
 const InvalidTypeTag = 'invalid'
+
+type Predicate<P, E> = (p: P) => Validated<E, unknown>
 
 export type ErrorOfValidated<V> = V extends Invalid<infer E, any> ? E : never
 type ErrorOfCombinedValidated<O> = Partial<{ [K in keyof O]: ErrorOfValidated<O[K]> }>

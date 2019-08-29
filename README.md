@@ -14,7 +14,7 @@ const isPositive = ValidationRule.test((n: number) => {
 })
 ```
 
-This results in a `ValidationRule<number, string, number, []>`. The input is a `number` (the first type parameter), and validation might result in a error of the type `string` (the second type parameter). The third and fourth type parameters will be discussed in next paragraphs.
+This results in a `ValidationRule<number, string>`. The input is a `number` (the first type parameter), and validation might result in a error of the type `string` (the second type parameter).
 
 How do we use it?
 
@@ -52,7 +52,7 @@ const isFloat = ValidationRule.create((s: string) => {
 })
 ```
 
-The type of `isFloat` is `ValidationRule<string, string, number, []>`. The input is a `string` (the first type parameter) which we try to parse, and validation might result in a error of the type `string` (the second type parameter). The output of this validation rule is `number` (the third type parameter).
+The type of `isFloat` is `ValidationRule<string, string, number>`. The input is a `string` (the first type parameter) which we try to parse, and validation might result in a error of the type `string` (the second type parameter). The output of this validation rule is `number` (the third type parameter).
 
 How do we use it?
 
@@ -68,6 +68,8 @@ if (validated.isValid()) {
 
 Note the call to `toFixed`, which we are only able to do because `value` is a `number`.
 
+The return value of a validation rule is where Nope differs from [Yup](https://github.com/jquense/yup). In Yup, the validation (is something valid or not) and the transformation to a valid value are two separate steps. In Nope, this is a single step. This makes it easy to create validation rules that build upon each other, as we'll see next.
+
 ### Chaining
 
 We can combine the two rules into one:
@@ -81,7 +83,7 @@ This validation rule takes a `string` and tries to parse it as a `number`. If it
 * An error stating that the `string` does not contain a number. For example: `'Dog is not a number'`
 * An error stating that the `number` is negative. For example: `'-123.4 is negative`
 
-There are many ways to combine simple validation rules into more complex validation rules. Take a look at the documentation for [`combine`](#validationrulecombine), `test` or [`many`](#validationrulemany) for example.
+There are many ways to combine simple validation rules into more complex validation rules. Take a look at the documentation for [`combine`](#validationrulecombine), [`test`]($validationruletest) or [`many`](#validationrulemany) for example.
 
 ### Meta data
 
@@ -177,9 +179,9 @@ Using this validation rule results in a valid `Array<number>` when all input val
 
 #### ValidationRule.test
 
-Combining validation rules like `composeWith` produces a union of errors. We can _either_ an error of this shape, _or_ an error of that shape. We can never get both errors at the same time.
+Combining validation rules like `composeWith` produces a union of errors. We can expect _either_ an error of this shape, _or_ an error of that shape. We can never get both errors at the same time.
 
-`ValidationRule.test` allows you to run multiple validation rules at the same time (producing possibly many errors) with the condition that neither of those validation rules return a value.
+`ValidationRule.test` allows you to run multiple validation rules at the same time (producing possibly many errors). Those validation rules are used purely for their errors. The values returned from the individual validation rules are discarded.
 
 #### `Numbers.fromNumber`
 

@@ -313,13 +313,17 @@ describe('ValidationRule', () => {
   })
 
   describe('test', () => {
-    function isEven(n: number): Validated<string> {
-      return n % 2 === 0 ? Validated.ok() : Validated.error(`${n} is not even`)
-    }
+    const isEven = ValidationRule.test(
+      (n: number): Validated<string> => {
+        return n % 2 === 0 ? Validated.ok() : Validated.error(`${n} is not even`)
+      }
+    )
 
-    function isPositive(n: number): Validated<boolean> {
-      return n > 0 ? Validated.ok() : Validated.error(false)
-    }
+    const isPositive = ValidationRule.test(
+      (n: number): Validated<boolean> => {
+        return n > 0 ? Validated.ok() : Validated.error(false)
+      }
+    )
 
     it('should return the original value if the original value is valid if the predicates return true', () => {
       const alwaysValid: ValidationRule<number, number> = ValidationRule.create<number, number>(Validated.ok)

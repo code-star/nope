@@ -2,7 +2,6 @@ import { keys } from './Objects'
 import { Validated, CombinedValidated, ValueOfValidated, ErrorOfValidated } from './Validated'
 import { Arrays } from './Arrays'
 import { Undefineds, IsUndefined } from './Undefineds'
-import { Predicate } from './Predicate'
 
 export class ValidationRule<P, E, A = P, M extends any[] = []> {
   static compose<E, F, A, B, C, M extends any[]>(left: ValidationRule<A, E, B, M>, right: ValidationRule<B, F, C, M>): ValidationRule<A, E | F, C, M> {
@@ -34,9 +33,9 @@ export class ValidationRule<P, E, A = P, M extends any[] = []> {
     )
   }
 
-  static test<P, E, M extends any[] = []>(fn: Predicate<P, E, M>): ValidationRule<P, E, P, M> {
+  static test<P, E, M extends any[] = []>(predicate: (p: P, ...meta: M) => Validated<E, []>): ValidationRule<P, E, P, M> {
     return new ValidationRule<P, E, P, M>((p, ...meta) => {
-      return fn(p, ...meta).map(() => p)
+      return predicate(p, ...meta).map(() => p)
     })
   }
 
@@ -73,12 +72,12 @@ export class ValidationRule<P, E, A = P, M extends any[] = []> {
     return new ValidationRule<P & Q, F, A | B, M>((p, ...meta) => this.apply(p, ...meta).orElse(alternative.apply(p, ...meta)))
   }
 
-  public rmap<B>(fn: (a: A) => B): ValidationRule<P, E, B, M> {
-    return this.map(fn)
+  public mapMeta<MM extends any[]>(fn: (mm: MM) => M): ValidationRule<P, E, A, MM> {
+    return new ValidationRule<P, E, A, MM>((p, ...mm) => this.apply(p, ...fn(mm)))
   }
 
-  public lmap<MM extends any[]>(fn: (mm: MM) => M): ValidationRule<P, E, A, MM> {
-    return new ValidationRule<P, E, A, MM>((p, ...mm) => this.apply(p, ...fn(mm)))
+  public mapInput<Q>(fn: (q: Q) => P): ValidationRule<Q, E, A, M> {
+    return new ValidationRule<Q, E, A, M>((q, ...m) => this.apply(fn(q), ...m))
   }
 
   public upcastMeta<MM extends M>(): ValidationRule<P, E, A, MM> {
@@ -87,7 +86,7 @@ export class ValidationRule<P, E, A = P, M extends any[] = []> {
 
   public required(): ValidationRule<P | undefined, E | IsUndefined, A, M> {
     return Undefineds.notUndefined<P>()
-      .lmap<M>(() => [])
+      .mapMeta<M>(() => [])
       .composeWith(this)
   }
 
@@ -103,10 +102,10 @@ export class ValidationRule<P, E, A = P, M extends any[] = []> {
     return this.composeWith(Arrays.many(validationRule))
   }
 
-  public test<F>(...predicates: Array<Predicate<A, F, M>>): ValidationRule<P, E | F[], A, M> {
+  public test<F>(...validationRules: Array<ValidationRule<A, F, A, M>>): ValidationRule<P, E | F[], A, M> {
     return ValidationRule.create<P, E | F[], A, M>(
       (p, ...meta: M): Validated<E | F[], A> => {
-        const withMeta: Array<Predicate<A, F>> = predicates.map(predicate => (a: A) => predicate(a, ...meta))
+        const withMeta: Array<(a: A) => Validated<F, A>> = validationRules.map(validationRule => (a: A) => validationRule.apply(a, ...meta))
         return this.apply(p, ...meta).test<F>(...withMeta)
       }
     )
