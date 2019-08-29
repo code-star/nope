@@ -58,8 +58,9 @@ How do we use it?
 
 ```typescript
 const validated = isFloat.apply('123.456789')
+
 if (validated.isValid()) {
-  console.log(`${validated.value.toFixed(2)} is a positive number!`)
+  console.log(`${validated.value.toFixed(2)} is a number!`)
 } else {
   console.error(`Error: ${validated.error}`)
 }
@@ -117,6 +118,7 @@ if (validated.isValid()) {
     - [`ValidationRule.combine`](#validationrulecombine)
     - [`ValidationRule.composeWith`](#validationrulecomposewith)
     - [`ValidationRule.many`](#validationrulemany)
+    - [`ValidationRule.test`](#validationruletest)
   - `Numbers`
     - [`Numbers.fromNumber`](#numbersfromnumber)
     - [`Numbers.fromUnknown`](#numbersfromunknown)
@@ -172,6 +174,12 @@ const areAllPositive = Numbers.positive().many()
 ```
 
 Using this validation rule results in a valid `Array<number>` when all input values are positive, or an error of shape `Array<NotPositive | undefined>`. The error `Array` will only have values at the indices where negative numbers are located.
+
+#### ValidationRule.test
+
+Combining validation rules like `composeWith` produces a union of errors. We can _either_ an error of this shape, _or_ an error of that shape. We can never get both errors at the same time.
+
+`ValidationRule.test` allows you to run multiple validation rules at the same time (producing possibly many errors) with the condition that neither of those validation rules return a value.
 
 #### `Numbers.fromNumber`
 
