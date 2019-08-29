@@ -123,10 +123,15 @@ Note that this documentation is not yet complete. Explore the API to learn more 
     - [`ValidationRule.composeWith`](#validationrulecomposewith)
     - [`ValidationRule.many`](#validationrulemany)
     - [`ValidationRule.test`](#validationruletest)
+    - [`ValidationRule.optional`](#validationruleoptional)
+    - [`ValidationRule.required`](#validationrulerequired)
   - `Numbers`
     - [`Numbers.fromNumber`](#numbersfromnumber)
     - [`Numbers.fromUnknown`](#numbersfromunknown)
     - [`Numbers.positive`](#numberspositive)
+  - `Undefineds`
+    - [`Undefineds.optional`](#undefinedsoptional)
+    - [`Undefineds.required`](#undefinedsrequired)
 
 #### `ValidationRule.combine`
 
@@ -185,6 +190,14 @@ Combining validation rules like `composeWith` produces a union of errors. We can
 
 `ValidationRule.test` allows you to run multiple validation rules at the same time (producing possibly many errors). Those validation rules are used purely for their errors. The values returned from the individual validation rules are discarded.
 
+#### `ValidationRule.optional`
+
+See [`Undefineds.optional`](#undefinedsoptional)
+
+#### `ValidationRule.required`
+
+See [`Undefineds.required`](#undefinedsrequired)
+
 #### `Numbers.fromNumber`
 
 `ValidationRule` that takes a `number` and produces a `number`. This rule will not produce any errors. It is usually used as a starting point for more complex validation rules.
@@ -196,3 +209,23 @@ Combining validation rules like `composeWith` produces a union of errors. We can
 #### `Numbers.positive`
 
 `ValidationRule` that ensures that a given `number` is positive. May produce a `NotPositive` error.
+
+#### `Undefineds.optional`
+
+Allows optional values (but doesn't raise an error). Mostly used to wrap a `composeWith`-chain to make the _whole_ chain optional.
+
+```typescript
+const isOptionalNumber = Undefineds.optional(Numbers.fromNumber())
+
+isOptionalNumber.apply(undefined) // OK!
+```
+
+#### `Undefineds.required`
+
+Allows optional inputs, but raise an error if the input is `undefined`. Mostly used at the beginning of a `composeWith`-chain.
+
+```typescript
+const isNumber = Undefineds.required<number>()
+
+isNumber.apply(undefined) // Results in `IsUndefined` error.
+```
