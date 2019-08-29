@@ -1,8 +1,9 @@
 {
   "name": "codestar-nope",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Type-safe validation library for Typescript",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "compile-test": "npm run clean && tsc -p . --p tsconfig.test.json",
     "test": "npm run compile-test && jest --no-cache",
