@@ -14,7 +14,7 @@ const isPositive = ValidationRule.test((n: number) => {
 })
 ```
 
-This results in a `ValidationRule<number, string>`. The input is a `number` (the first type parameter), and validation might result in a error of the type `string` (the second type parameter).
+This results in a `ValidationRule<number, string, number, []>`. The input is a `number` (the first type parameter), and validation might result in a error of the type `string` (the second type parameter). The third and fourth type parameters will be discussed in next paragraphs.
 
 How do we use it?
 
@@ -52,12 +52,12 @@ const isFloat = ValidationRule.create((s: string) => {
 })
 ```
 
-The type of `isFloat` is `ValidationRule<string, string, number>`. The output of this validation rule is `number` (the third type parameter).
+The type of `isFloat` is `ValidationRule<string, string, number, []>`. The input is a `string` (the first type parameter) which we try to parse, and validation might result in a error of the type `string` (the second type parameter). The output of this validation rule is `number` (the third type parameter).
 
 How do we use it?
 
 ```typescript
-const validated = isInt.apply('123.456789')
+const validated = isFloat.apply('123.456789')
 if (validated.isValid()) {
   console.log(`${validated.value.toFixed(2)} is a positive number!`)
 } else {
@@ -112,4 +112,64 @@ if (validated.isValid()) {
 
 ## API
 
-Coming soon...
+- [API](#API)
+  - `ValidationRule`
+    - [`ValidationRule.combine`](#validationrulecombine)
+    - [`ValidationRule.composeWith`](#validationrulecomposewith)
+  - `Numbers`
+    - [`Numbers.fromNumber`](#numbersfromnumber)
+    - [`Numbers.fromUnknown`](#numbersfromunknown)
+    - [`Numbers.positive`](#numberspositive)
+
+#### `ValidationRule.combine`
+
+Creates a `ValidationRule` for an object. Define the keys of the object and the validation rules for those keys. 
+
+```typescript
+const isPerson = ValidationRule.combine({
+  age: Numbers.fromNumber().composeWith(Numbers.positive()),
+  name: Strings.fromString().composeWith(Strings.notEmpty())
+})
+```
+
+Using this validation rule results in a valid object of shape
+
+```typescript
+{
+  age: number,
+  name: string
+}
+```
+
+or an error of shape
+
+```typescript
+{
+  age?: NotPositive,
+  name?: EmptyString
+}
+```
+
+#### `ValidationRule.composeWith`
+
+Compose two validation rules. Produces either of the two errors of the individual validation rules.
+
+For example,
+
+```typescript
+Numbers.fromUnknown().composeWith(Numbers.positive())
+```
+
+will produce either a `NotANumber` error or a `NotPositive` error when it fails.
+
+#### `Numbers.fromNumber`
+
+`ValidationRule` that takes a `number` and produces a `number`. This rule will not produce any errors. It is usually used as a starting point for more complex validation rules.
+
+#### `Numbers.fromUnknown`
+
+`ValidationRule` that ensures that a given value (of type `unknown`) is a `number`. May produce a `NotANumber` error.
+
+#### `Numbers.positive`
+
+`ValidationRule` that ensures that a given `number` is positive. May produce a `NotPositive` error.
