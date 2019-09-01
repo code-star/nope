@@ -174,6 +174,22 @@ Numbers.fromUnknown().composeWith(Numbers.positive())
 
 will produce either a `NotANumber` error or a `NotPositive` error when it fails.
 
+You can chain as many `composeWith`-calls as you like. The following will check whether an `unknown` value is a string which contains a positive float:
+
+```typescript
+const containsPositiveFloat = Strings.fromUnknown()
+  .composeWith(Strings.notEmpty())
+  .composeWith(Strings.containsFloat())
+  .composeWith(Numbers.positive())
+```
+
+This validation rule can result in either:
+
+* A `NotAString` error
+* An `EmptyString` error
+* A `DoesNotContainFloat` error
+* A `NotPositive` error
+
 #### `ValidationRule.many`
 
 From a `ValidationRule` for a type `A`, creates a `ValidationRule` for type `A[]`.
@@ -222,7 +238,7 @@ isOptionalNumber.apply(undefined) // OK!
 
 #### `Undefineds.required`
 
-Allows optional inputs, but raise an error if the input is `undefined`. Mostly used at the beginning of a `composeWith`-chain.
+Allows optional inputs, but raises an error if the input is `undefined`. Mostly used at the beginning of a `composeWith`-chain.
 
 ```typescript
 const isNumber = Undefineds.required<number>()
