@@ -1,5 +1,12 @@
 # Nope
 
+## Goals
+
+* To be a type-safe alternative to [Yup](https://github.com/jquense/yup)
+* Composable validation (based on concepts from functional programming)
+* Completely type-safe
+* Custom error types
+
 ## Introduction
 
 ### Simple validation
@@ -113,6 +120,19 @@ if (validated.isValid()) {
 }
 ```
 
+#### Error types
+
+One of the goals of this library is to properly track all the possible errors, so you can be sure you handle all of them (and not too many). When we want to verify that a value (of type `unknown`) is a `string` containing a positive number we can define the following validation rule:
+
+```typescript
+const containsPositiveNumber = Strings
+  .fromUnknown()
+  .composeWith(Strings.containsFloat())
+  .composeWith(Numbers.positive())
+```
+
+the type of this validation rule is `ValidationRule<unknown, NotAString | DoesNotContainFloat | NotPositive, number>`. Contrast this with an error type like [Yup's](https://github.com/jquense/yup), where every error is encoded as a `string`.
+
 ## API
 
 Note that this documentation is not yet complete. Explore the API to learn more about what is possible. Help making the documentation complete is very welcome.
@@ -126,6 +146,9 @@ Note that this documentation is not yet complete. Explore the API to learn more 
     - [`ValidationRule.test`](#validationruletest)
     - [`ValidationRule.optional`](#validationruleoptional)
     - [`ValidationRule.required`](#validationrulerequired)
+    - [`ValidationRule.map`](#validationrulemap)
+    - [`ValidationRule.orElse`](#validationruleorelse)
+    - [`ValidationRule.mapError`](#validationrulemaperror)
   - `Booleans`
     - [`Booleans.fromBoolean`](#booleansfromboolean)
     - [`Booleans.fromUnknown`](#booleansfromunknown) 
@@ -258,6 +281,18 @@ const isNumber = Numbers
 // the type system.
 isNumber.apply(undefined)
 ```
+
+#### `ValidationRule.map`
+
+Apply a transformation function to the result of the validation rule.
+
+#### `ValidationRule.orElse`
+
+Return the value if it is valid, "or else" fall back to the given default.
+
+#### `ValidationRule.mapError`
+
+Transforms the error value, like [`ValidationRule.map`](#validationrulemap) transforms the valid value.
 
 #### `Booleans.fromBoolean`
 
