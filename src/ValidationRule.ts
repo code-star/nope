@@ -2,7 +2,6 @@ import { keys } from './Objects'
 import { Validated, CombinedValidated, ValueOfValidated, ErrorOfValidated } from './Validated'
 import { Arrays } from './Arrays'
 import { Undefineds, IsUndefined } from './Undefineds'
-import { memoize, Equalities, Equality } from './Memoize'
 
 export class ValidationRule<P, E, A = P, M extends any[] = []> {
   static compose<E, F, A, B, C, M extends any[]>(left: ValidationRule<A, E, B, M>, right: ValidationRule<B, F, C, M>): ValidationRule<A, E | F, C, M> {
@@ -110,11 +109,6 @@ export class ValidationRule<P, E, A = P, M extends any[] = []> {
         return this.apply(p, ...meta).test<F>(...withMeta)
       }
     )
-  }
-
-  public memoize(pConfig?: Equality<P>, ...metaConfig: Partial<Equalities<M>>) {
-    const memoized = memoize<P, M, Validated<E, A>>(this.apply, pConfig, metaConfig)
-    return new ValidationRule<P, E, A, M>(memoized)
   }
 }
 

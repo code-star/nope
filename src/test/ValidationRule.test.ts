@@ -353,46 +353,4 @@ describe('ValidationRule', () => {
       expect(toVerify).toEqual(expected)
     })
   })
-
-  describe('memoize', () => {
-    it('should call the validation function only once when repeatedly using the validation rule with the same input (using reference equality as default)', () => {
-      let timesCalled = 0
-      const validationRule: ValidationRule<number, boolean, string, [string, boolean]> = ValidationRule.create((n, s, b) => {
-        ++timesCalled
-        return Validated.ok(`${n} ${s} ${b}`)
-      })
-      const memoizedValidationRule: ValidationRule<number, boolean, string, [string, boolean]> = validationRule.memoize()
-
-      const expected: Validated<boolean, string> = Validated.ok('1 Snake true')
-      for (let i = 0; i < 5; ++i) {
-        const toVerify: Validated<boolean, string> = memoizedValidationRule.apply(1, 'Snake', true)
-        expect(toVerify).toEqual(expected)
-        expect(timesCalled).toEqual(1)
-      }
-    })
-
-    it('should call the validation function multiple times when repeatedly using the validation rule with different input (using reference equality as default)', () => {
-      let timesCalled = 0
-      const validationRule: ValidationRule<number, boolean, string, [string, boolean]> = ValidationRule.create((n, s, b) => {
-        ++timesCalled
-        return Validated.ok(`${n} ${s} ${b}`)
-      })
-      const memoizedValidationRule: ValidationRule<number, boolean, string, [string, boolean]> = validationRule.memoize()
-
-      const toVerifyFirstCall: Validated<boolean, string> = memoizedValidationRule.apply(1, 'Snake', true)
-      const expectedFirstCall: Validated<boolean, string> = Validated.ok('1 Snake true')
-      expect(toVerifyFirstCall).toEqual(expectedFirstCall)
-      expect(timesCalled).toEqual(1)
-
-      const toVerifySecondCall: Validated<boolean, string> = memoizedValidationRule.apply(4, 'Snake', true)
-      const expectedSecondCall: Validated<boolean, string> = Validated.ok('4 Snake true')
-      expect(toVerifySecondCall).toEqual(expectedSecondCall)
-      expect(timesCalled).toEqual(2)
-
-      const toVerifyThirdCall: Validated<boolean, string> = memoizedValidationRule.apply(4, 'Dog', true)
-      const expectedThirdCall: Validated<boolean, string> = Validated.ok('4 Dog true')
-      expect(toVerifyThirdCall).toEqual(expectedThirdCall)
-      expect(timesCalled).toEqual(3)
-    })
-  })
 })
