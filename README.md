@@ -122,16 +122,24 @@ Note that this documentation is not yet complete. Explore the API to learn more 
     - [`ValidationRule.combine`](#validationrulecombine)
     - [`ValidationRule.composeWith`](#validationrulecomposewith)
     - [`ValidationRule.many`](#validationrulemany)
+    - [`ValidationRule.of`](#validationruleof)
     - [`ValidationRule.test`](#validationruletest)
     - [`ValidationRule.optional`](#validationruleoptional)
     - [`ValidationRule.required`](#validationrulerequired)
+  - `Booleans`
+    - [`Booleans.fromBoolean`](#booleansfromboolean)
+    - [`Booleans.fromUnknown`](#booleansfromunknown) 
   - `Numbers`
     - [`Numbers.fromNumber`](#numbersfromnumber)
     - [`Numbers.fromUnknown`](#numbersfromunknown)
     - [`Numbers.positive`](#numberspositive)
-  - `Undefineds`
-    - [`Undefineds.optional`](#undefinedsoptional)
-    - [`Undefineds.required`](#undefinedsrequired)
+  - `Strings`
+    - [`Strings.fromString`](#stringsfromstring)
+    - [`Strings.fromUnknown`](#stringsfromunknown)
+    - [`Strings.notEmpty`](#stringsnotempty)
+    - [`Strings.containsFloat`](#stringscontainsfloat)
+  - `Arrays`
+    - [`Arrays.fromArray`](#arraysfromarray)
 
 #### `ValidationRule.combine`
 
@@ -194,11 +202,23 @@ This validation rule can result in either:
 
 From a `ValidationRule` for a type `A`, creates a `ValidationRule` for type `A[]`.
 
+Contrast with `ValidationRule.of`.
+
 ```typescript
 const areAllPositive = Numbers.positive().many()
 ```
 
 Using this validation rule results in a valid `Array<number>` when all input values are positive, or an error of shape `Array<NotPositive | undefined>`. The error `Array` will only have values at the indices where the negative numbers are located.
+
+#### `ValidationRule.of`
+
+Given that the output type of validation rule is `A[]`, allows you to apply a validation rule that takes an `A` as input.
+
+Contrast with `ValidationRule.many`.
+
+```typescript
+const areAllPositive = Arrays.fromArray<number>().of(Numbers.positive())
+```
 
 #### ValidationRule.test
 
@@ -208,11 +228,44 @@ Combining validation rules like `composeWith` produces a union of errors. We can
 
 #### `ValidationRule.optional`
 
-See [`Undefineds.optional`](#undefinedsoptional)
+Allows optional values (but doesn't raise an error). Mostly used to wrap a `composeWith`-chain to make the _whole_ chain optional.
+
+Contrast this with `ValidationRule.required`.
+
+```typescript
+const isNumber = Numbers
+  .fromNumber()
+  .composeWith(Numbers.positive())
+  .optional()
+
+// Results in `Validated.ok(undefined)`.
+isNumber.apply(undefined) // OK!
+```
 
 #### `ValidationRule.required`
 
-See [`Undefineds.required`](#undefinedsrequired)
+Allows optional inputs, but raises an error if the input is `undefined`.
+
+Contrast this with `ValidationRule.optional`.
+
+```typescript
+const isNumber = Numbers
+  .fromNumber()
+  .composeWith(Numbers.positive())
+  .required()
+
+// Results in `IsUndefined` error but is allowed by
+// the type system.
+isNumber.apply(undefined)
+```
+
+#### `Booleans.fromBoolean`
+
+`ValidationRule` that takes a `boolean` and produces a `boolean`. This rule will not produce any errors. It is usually used as a starting point for more complex validation rules.
+
+#### `Booleans.fromUnknown`
+
+`ValidationRule` that ensures that a given value (of type `unknown`) is a `boolean`. May produce a `NotABoolean` error.
 
 #### `Numbers.fromNumber`
 
@@ -226,22 +279,22 @@ See [`Undefineds.required`](#undefinedsrequired)
 
 `ValidationRule` that ensures that a given `number` is positive. May produce a `NotPositive` error.
 
-#### `Undefineds.optional`
+#### `Strings.fromString`
 
-Allows optional values (but doesn't raise an error). Mostly used to wrap a `composeWith`-chain to make the _whole_ chain optional.
+`ValidationRule` that takes a `string` and produces a `string`. This rule will not produce any errors. It is usually used as a starting point for more complex validation rules.
 
-```typescript
-const isOptionalNumber = Undefineds.optional(Numbers.fromNumber())
+#### `Strings.fromUnknown`
 
-isOptionalNumber.apply(undefined) // OK!
-```
+`ValidationRule` that ensures that a given value (of type `unknown`) is a `string`. May produce a `NotAString` error.
 
-#### `Undefineds.required`
+#### `Strings.notEmpty`
 
-Allows optional inputs, but raises an error if the input is `undefined`. Mostly used at the beginning of a `composeWith`-chain.
+Verifies that a given `string` is not empty.
 
-```typescript
-const isNumber = Undefineds.required<number>()
+#### `Strings.containsFloat`
 
-isNumber.apply(undefined) // Results in `IsUndefined` error.
-```
+Verifies that a given string contains a `number`. Uses `parseFloat` under the hood. Produces a (possible) `number`.
+
+#### `Arrays.fromArray`
+
+`ValidationRule` that takes an array and produces an array. Takes a type parameter to limit the type of acceptable elements. This rule will not produce any errors. It is usually used as a starting point for more complex validation rules.
