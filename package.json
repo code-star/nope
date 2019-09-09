@@ -1,6 +1,6 @@
 {
   "name": "codestar-nope",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "Type-safe validation library for Typescript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
